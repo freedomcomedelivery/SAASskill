@@ -88,3 +88,12 @@ Commercial readiness is a state rather than a numeric score:
 `not_ready → ready_for_controlled_sales → sales_validated → ready_to_scale`.
 
 See [existing-project audit](docs/existing-project-audit.md).
+
+
+## Ahrefs
+
+Connect Ahrefs to the host through its official remote MCP/OAuth flow; no Ahrefs
+secret belongs in this repository. SAASskill includes an Ahrefs normalizer for
+keyword, domain, competitor, backlink and paid-search responses.
+
+See [docs/ahrefs.md](docs/ahrefs.md).

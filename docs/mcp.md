@@ -52,3 +52,15 @@ on ChatGPT-only UI features.
 
 External Semrush/Ahrefs/Ads tools remain host-side. SAASskill routes to them and stores
 their normalized results; it does not require their credentials inside the core runtime.
+
+
+## Ahrefs external provider
+
+Connect Ahrefs separately from SAASskill. For Claude Code use its official hosted
+MCP via OAuth:
+
+```bash
+claude mcp add ahrefs https://api.ahrefs.com/mcp/mcp -t http
+```
+
+After authentication advertise `ahrefs` in the SAASskill provider list.

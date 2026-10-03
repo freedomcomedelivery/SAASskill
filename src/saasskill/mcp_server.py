@@ -8,6 +8,7 @@ from mcp.server import MCPServer
 
 from .audit import build_growth_plan, growth_priorities, mark_audit_section, refresh_audit_report, update_growth_action
 from .autopilot import ProjectRunner
+from .ahrefs import normalize_ahrefs_result
 from .host_executor import HostExecutor
 from .orchestrator import Orchestrator
 from .providers import ProviderRouter
@@ -67,6 +68,22 @@ def project_tick(
         available_providers=available_providers,
         preferences=preferences,
         auto_advance=auto_advance,
+    )
+
+
+@mcp.tool()
+def provider_normalize_ahrefs(
+    request_id: str,
+    endpoint: str,
+    payload: dict[str, Any],
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize an official Ahrefs MCP/API response into a SAASskill ToolResult."""
+    return normalize_ahrefs_result(
+        request_id=request_id,
+        endpoint=endpoint,
+        payload=payload,
+        context=context,
     )
 
 

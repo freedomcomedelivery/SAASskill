@@ -41,3 +41,12 @@ replace provider-reported search volume, traffic or backlink metrics.
 
 The host (Claude, ChatGPT, another MCP client, or a custom worker) executes the external
 tool and submits a normalized result through `project_apply_result`.
+
+
+## Ahrefs normalization
+
+When Ahrefs is selected, use its official MCP/API response rather than retyping
+metrics. Pass endpoint + raw payload to `provider_normalize_ahrefs`, then submit
+that returned ToolResult via `project_apply_result`.
+
+See [Ahrefs setup](ahrefs.md).
