@@ -111,3 +111,8 @@ v1.5 adds:
 
 See [integration layer](docs/integrations.md), [ads](docs/ads-integrations.md),
 [Semrush](docs/semrush.md), and [Camoufox](docs/camoufox-parser.md).
+
+
+## Before credentials
+
+All request builders, dry runs, normalizers, approval/execution contracts and mocked browser transports can be tested before adding secrets. See [pre-key checklist](docs/pre-key-checklist.md).
