@@ -1,8 +1,8 @@
-# Pet Project Launch Operator v1.0
+# Pet Project Launch Operator v1.1
 
 Это не конспект курса. Это repo-ready база для агента, который выполняет продуктовый запуск по методике «Практикума по пет-проектам».
 
-## Что изменилось относительно v0.1
+## Что входит в v1.1
 - полная карта всех блоков и уроков транскрипта;
 - state machine и orchestrator loop;
 - отдельные schemas для market/research/landing/economics/lead/approval;
@@ -10,7 +10,9 @@
 - validators вместо субъективных «оценок идеи»;
 - current-platform verification layer;
 - eval-набор для проверки поведения агента;
-- integration map для web/Drive/GitHub/SEO/Ads/analytics/CRM.
+- integration map для web/Drive/GitHub/SEO/Ads/analytics/CRM;
+- GitHub Actions CI;
+- статический repo validator и eval contract runner.
 
 ## Что skill делает
 1. Собирает минимум личного контекста.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1
+- GitHub Actions validation workflow.
+- Static repository validator.
+- Eval contract runner for 15 behavior cases.
+- CONTRIBUTING rules for methodology/platform changes.
+- Repository packaging and GitHub deployment.
+
 ## 1.0
 - Полная state machine.
 - Полная карта транскрипта.
