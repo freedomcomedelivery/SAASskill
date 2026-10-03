@@ -51,13 +51,25 @@ class AhrefsNormalizerTests(unittest.TestCase):
             request_id="req_4",
             endpoint="site-explorer/paid-pages",
             payload={"pages": [
-                {"url": "https://a.com/x", "ads_count": 5, "keywords": 20},
+                {"url": "https://a.com/x", "ads_count": 5, "keywords": 20, "sum_traffic": 100},
                 {"url": "https://a.com/y", "ads_count": 0, "keywords": 0},
             ]},
             context={"target": "a.com"},
         )
         self.assertEqual(result["capability"], "seo.competitor_ads")
         self.assertIn("1 returned rows show paid-search activity", result["evidence"][0]["claim"])
+
+    def test_refdomains_real_field_name(self):
+        result = normalize_ahrefs_result(
+            request_id="req_5",
+            endpoint="site-explorer/refdomains",
+            payload={"refdomains":[
+                {"domain":"one.example","domain_rating":50,"links_to_target":3},
+                {"domain":"two.example","domain_rating":40,"links_to_target":1},
+            ]},
+            context={"target":"example.com"},
+        )
+        self.assertIn("2 distinct referring domains", result["evidence"][0]["claim"])
 
     def test_unsupported_endpoint_is_rejected(self):
         with self.assertRaises(ValueError):
