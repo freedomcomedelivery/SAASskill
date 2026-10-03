@@ -21,10 +21,12 @@ first-party APIs/SDKs; pin third-party dependencies and keep all write paths beh
 SAASskill approval plans.
 
 
-| Analytics / product funnel | PostHog hosted MCP (source now in `PostHog/posthog/services/mcp`) | **Official integration target**; old `PostHog/mcp` repo is archived |
+| Need | Repository / service | Decision |
+|---|---|---|
+| Analytics / product funnel | PostHog hosted MCP (source in `PostHog/posthog/services/mcp`) | **Official integration target**; old standalone repo is archived |
 | CRM | `HubSpot/mcp-server` / official HubSpot remote MCP | **Official integration target** |
 | Payments | `stripe/ai` + `stripe/stripe-python` | **Official integration target**; hosted MCP + official Python SDK |
-| GA4 | Google Analytics Data API | Prefer official API/client over random community MCPs |
+| GA4 | Google Analytics Data API | **Official integration target**; prefer official client |
 
 
 ## Browser backend decision
