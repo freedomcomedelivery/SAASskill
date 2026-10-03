@@ -20,7 +20,7 @@ for p in ROOT.rglob('*.jsonl'):
         except Exception as e:
             errors.append(f'JSONL invalid: {p.relative_to(ROOT)}:{i}: {e}')
 
-link_re = re.compile(r'\\[[^\\]]+\\]\\(([^)]+)\\)')
+link_re = re.compile(r'\[[^\]]+\]\(([^)]+)\)')
 for p in ROOT.rglob('*.md'):
     text=p.read_text(encoding='utf-8',errors='replace')
     for target in link_re.findall(text):

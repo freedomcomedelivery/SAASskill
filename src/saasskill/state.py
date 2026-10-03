@@ -29,7 +29,7 @@ def utc_now() -> str:
 
 
 def slugify(value: str) -> str:
-    value = re.sub(r"[^\\w\\-]+", "-", value.strip().lower(), flags=re.UNICODE)
+    value = re.sub(r"[^\w\-]+", "-", value.strip().lower(), flags=re.UNICODE)
     value = re.sub(r"-+", "-", value).strip("-")
     return value or "project"
 
