@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GrowthPlan",
+  "type": "object",
+  "properties": {
+    "priorities": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "finding_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "hypothesis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "capability": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "side_effect": {
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "prepared",
+              "approved",
+              "running",
+              "executed",
+              "measured",
+              "cancelled"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "status"
+        ],
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -43,9 +43,9 @@ required = [
     'evals/cases.jsonl','pyproject.toml','src/saasskill/state.py',
     'src/saasskill/gates.py','src/saasskill/orchestrator.py',
     'src/saasskill/cli.py','src/saasskill/capabilities.py',
-    'src/saasskill/providers.py','src/saasskill/host_executor.py',
+    'src/saasskill/providers.py','src/saasskill/host_executor.py','src/saasskill/audit.py','src/saasskill/audit_workplan.py','src/saasskill/autopilot.py',
     'src/saasskill/mcp_server.py','tests/test_runtime.py',
-    'tests/test_provider_routing.py','docs/mcp.md','docs/provider-routing.md',
+    'tests/test_provider_routing.py','tests/test_audit_workflow.py','tests/test_runner.py','docs/mcp.md','docs/provider-routing.md','docs/existing-project-audit.md',
     'CLAUDE.md','AGENTS.md','.mcp.json.example',
 ]
 for req in required:
@@ -54,7 +54,7 @@ for req in required:
 
 try:
     manifest=json.loads((ROOT/'skill-manifest.json').read_text(encoding='utf-8'))
-    if manifest.get('version') != '1.3.0':
+    if manifest.get('version') != '1.4.0':
         errors.append(f"skill-manifest version must be 1.3.0, got {manifest.get('version')!r}")
     runtime=manifest.get('runtime') or {}
     if runtime.get('package') != 'saasskill':

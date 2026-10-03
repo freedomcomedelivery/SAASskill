@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuditReport",
+  "type": "object",
+  "properties": {
+    "sections": {
+      "type": "object"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "commercial_readiness": {
+      "enum": [
+        "unknown",
+        "not_ready",
+        "ready_for_controlled_sales",
+        "sales_validated",
+        "ready_to_scale"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

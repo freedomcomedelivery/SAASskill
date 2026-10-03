@@ -80,8 +80,104 @@ def _need(stage: str, status: str, missing: list[str], next_action: str) -> Gate
     return GateResult(stage, status, [], missing, next_action)
 
 
+def _audit_section_ready(state: dict[str, Any], key: str) -> bool:
+    section = ((state.get("audit_report") or {}).get("sections") or {}).get(key) or {}
+    return section.get("status") in {"complete", "pass", "audited"} and bool(section.get("evidence_ids"))
+
+
+def evaluate_audit_stage(state: dict[str, Any], stage: str) -> GateResult:
+    snap = state.get("audit_snapshot") or {}
+    report = state.get("audit_report") or {}
+
+    if stage == "audit_intake":
+        missing = []
+        if not _present(state.get("name")):
+            missing.append("name")
+        if missing:
+            return _need(stage, "needs_user_input", missing, "Name the existing project.")
+        return _pass(stage, "Audit workflow initialized.", next_action="Collect product assets, current commercial setup and metrics.")
+
+    if stage == "audit_snapshot":
+        missing = []
+        if not (_present(snap.get("product_url")) or _present(snap.get("product_identity")) or _present(snap.get("assets"))):
+            missing.append("product URL/identity/assets")
+        for key in ["geo", "product_status"]:
+            if not _present(snap.get(key)):
+                missing.append(key)
+        if not (_present(snap.get("offer")) or _present(snap.get("pricing"))):
+            missing.append("current offer/pricing")
+        if missing:
+            return _need(stage, "needs_user_input", missing, "Capture the minimum current-state snapshot; research everything public from product assets.")
+        return _pass(stage, "Existing product snapshot is usable.", next_action="Audit market, references and positioning.")
+
+    if stage == "audit_market_positioning":
+        if not _audit_section_ready(state, "market_positioning"):
+            return _need(stage, "needs_evidence", ["audit_report.sections.market_positioning"], "Research market, close references, avatar, pain, benefit and positioning evidence.")
+        return _pass(stage, "Market/positioning audit complete.", next_action="Audit offer, landing and product mechanism.")
+
+    if stage == "audit_offer_landing":
+        if not _audit_section_ready(state, "offer_landing"):
+            return _need(stage, "needs_evidence", ["audit_report.sections.offer_landing"], "Audit one-avatar/one-pain/one-benefit coherence, offer, CTA, mechanism and landing.")
+        return _pass(stage, "Offer/landing audit complete.", next_action="Audit current acquisition and channel choice.")
+
+    if stage == "audit_acquisition":
+        if not _audit_section_ready(state, "acquisition"):
+            return _need(stage, "needs_evidence", ["audit_report.sections.acquisition"], "Audit channel logic, current traffic, keywords/competitor channels and campaign evidence.")
+        return _pass(stage, "Acquisition audit complete.", next_action="Audit funnel, qualification, value delivery and close.")
+
+    if stage == "audit_funnel_sales":
+        if not _audit_section_ready(state, "funnel_sales"):
+            return _need(stage, "needs_evidence", ["audit_report.sections.funnel_sales"], "Recover the factual funnel and early sales process.")
+        return _pass(stage, "Funnel/sales audit complete.", next_action="Audit unit economics and paid-growth constraints.")
+
+    if stage == "audit_economics":
+        if not _audit_section_ready(state, "economics"):
+            return _need(stage, "needs_evidence", ["audit_report.sections.economics"], "Calculate or recover price/LTV, spend, CAC and budget constraints.")
+        return _pass(stage, "Economics audit complete.", next_action="Generate a prioritized growth plan from evidence-backed findings.")
+
+    if stage == "audit_growth_plan":
+        plan = state.get("growth_plan") or {}
+        if not plan.get("priorities"):
+            return _need(stage, "needs_evidence", ["growth_plan.priorities"], "Prioritize blocking errors and highest-leverage growth experiments.")
+        if not state.get("selected_growth_action_id"):
+            return _need(stage, "needs_user_input", ["selected_growth_action_id"], "Select the first growth action if more than one equally valid path remains.")
+        return _pass(stage, "Growth plan has a selected first action.", next_action="Prepare the selected commercial action and approval if needed.")
+
+    if stage == "audit_execution":
+        action_id = state.get("selected_growth_action_id")
+        actions = (state.get("growth_plan") or {}).get("actions") or []
+        action = next((x for x in actions if x.get("id") == action_id), None)
+        if not action:
+            return _need(stage, "blocked", ["selected growth action"], "Define the selected executable growth action.")
+        if action.get("side_effect"):
+            approvals = [a for a in state.get("approvals", []) if a.get("status") in {"approved", "executed"}]
+            if not approvals:
+                return _need(stage, "blocked", ["approved action"], "Request explicit approval before spend/publish/message/write.")
+        if action.get("status") not in {"executed", "running"}:
+            return _need(stage, "needs_evidence", ["execution result"], "Execute the approved/prepared growth action and read back the result.")
+        return _pass(stage, "Growth action executed.", next_action="Collect a homogeneous post-change funnel iteration.")
+
+    if stage == "audit_iteration":
+        if not state.get("funnel_snapshots") or not state.get("iterations"):
+            return _need(stage, "needs_evidence", ["funnel snapshot", "iteration"], "Measure the post-change funnel through qualified leads and payments.")
+        latest = state["iterations"][-1]
+        if not latest.get("actual"):
+            return _need(stage, "needs_evidence", ["iteration.actual"], "Finish the current iteration before judging the growth action.")
+        return _pass(stage, "Post-audit iteration measured.", next_action="Recalculate commercial readiness and continue the smallest useful growth loop.")
+
+    if stage == "audit_growth_loop":
+        readiness = state.get("commercial_readiness")
+        if readiness == "ready_to_scale":
+            return _pass(stage, "The project has payment evidence, viable economics and at least one finished iteration.", next_action="Scale carefully while monitoring funnel quality.")
+        return _pass(stage, "Audit loop is active.", next_action="Refresh audit findings from new data and choose the next highest-priority open finding.")
+
+    return GateResult(stage, "blocked", reasons=[f"Unknown audit stage: {stage}"], next_action="Fix project_state.stage.")
+
+
 def evaluate_stage(state: dict[str, Any], stage: str | None = None) -> GateResult:
     stage = stage or state.get("stage", "intake")
+    if state.get("workflow") == "existing_project_audit" or stage.startswith("audit_"):
+        return evaluate_audit_stage(state, stage)
 
     simplify = _simplification_problems(state)
     if simplify and stage not in {"intake", "personal_concept"}:

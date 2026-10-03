@@ -1,8 +1,8 @@
-# Pet Project Launch Operator v1.3
+# Pet Project Launch Operator v1.4
 
 Это не конспект курса. Это repo-ready база для агента, который выполняет продуктовый запуск по методике «Практикума по пет-проектам».
 
-## Что входит в v1.3
+## Что входит в v1.4
 - полная карта всех блоков и уроков транскрипта;
 - state machine и orchestrator loop;
 - отдельные schemas для market/research/landing/economics/lead/approval;
@@ -38,7 +38,7 @@ Specific UI steps и platform rules быстро устаревают. Поэт�
 
 ## Executable runtime
 
-v1.3 добавляет детерминированный Python runtime: project state на диске, gate engine,
+v1.4 добавляет детерминированный Python runtime: project state на диске, gate engine,
 audit trail, explicit approvals, CLI и host work planner.
 
 ```bash
@@ -53,7 +53,7 @@ PYTHONPATH=src python -m saasskill advance my-project
 
 ## Multi-host + providers
 
-v1.3 separates **host** from **data/action provider**. Claude, ChatGPT/OpenAI API or
+v1.4 separates **host** from **data/action provider**. Claude, ChatGPT/OpenAI API or
 another MCP client can drive the same project state.
 
 Research routing:
@@ -65,3 +65,26 @@ Semrush and Ahrefs are optional and complementary. See
 [provider routing](docs/provider-routing.md) and [MCP setup](docs/mcp.md).
 
 Claude Code can use the project-local [`.mcp.json.example`](.mcp.json.example).
+
+
+## Existing project audit
+
+For an already-built project:
+
+```bash
+PYTHONPATH=src python -m saasskill init "Existing SaaS" \
+  --project-id existing-saas \
+  --workflow existing_project_audit
+
+PYTHONPATH=src python -m saasskill tick existing-saas \
+  --provider web --provider ahrefs --provider ads --provider analytics --provider crm
+```
+
+The audit does not stop at recommendations. It reconstructs the market/offer/channel/
+funnel/sales/economics system, produces evidence-backed findings, creates a growth
+plan, executes the selected action after approval, then measures the next iteration.
+
+Commercial readiness is a state rather than a numeric score:
+`not_ready → ready_for_controlled_sales → sales_validated → ready_to_scale`.
+
+See [existing-project audit](docs/existing-project-audit.md).

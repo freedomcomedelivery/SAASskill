@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExistingProjectAuditSnapshot",
+  "type": "object",
+  "properties": {
+    "product_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "product_identity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "product_status": {
+      "enum": [
+        "prototype",
+        "live",
+        "launched",
+        "paused",
+        "unknown"
+      ]
+    },
+    "geo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "avatars": {},
+    "pains": {},
+    "benefits": {},
+    "offer": {
+      "type": "object"
+    },
+    "pricing": {},
+    "landing": {
+      "type": "object"
+    },
+    "channels": {
+      "type": "array",
+      "items": {}
+    },
+    "primary_channel": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "product_is_searched": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "addressable_audience": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "controlled_funnel": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "funnel_definition": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "funnel": {
+      "type": "object"
+    },
+    "analytics": {
+      "type": "object"
+    },
+    "sales_process": {
+      "type": "object"
+    },
+    "economics": {
+      "type": "object"
+    },
+    "assets": {
+      "type": "array",
+      "items": {}
+    },
+    "competitors": {
+      "type": "array",
+      "items": {}
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

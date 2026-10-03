@@ -82,7 +82,7 @@ description: Операционный агент запуска пет-прое�
 - Evals: `evals/`
 
 
-## Executable runtime v1.3
+## Executable runtime v1.4
 Если среда поддерживает репозиторий как исполняемый пакет, используй
 `src/saasskill/` как детерминированный control plane:
 - `ProjectStore` хранит реальный project state;
@@ -109,3 +109,20 @@ the provider named by the router, then normalize the result through
 `degraded=true` and never present it as provider-grade metrics.
 
 Claude and OpenAI hosts must follow the same gates and approvals.
+
+
+## Existing-project mode
+If the user already has a product, do not force them through idea generation.
+Initialize `workflow=existing_project_audit`.
+
+Reconstruct what exists, then audit in this order:
+`snapshot → market/positioning → offer/landing → acquisition → funnel/sales →
+economics → growth plan → execution → measured iteration`.
+
+Use the course's failure taxonomy explicitly: wrong channel, rushing,
+all-for-everyone, funnel-of-fate, premature evaluation, and missing
+decomposition/debugging. Also audit the early sales path
+`qualification → need discovery → demo/value delivery → close/payment ask`.
+
+The output is not a score. Maintain `commercial_readiness` and open findings.
+Prioritize blocking commercial errors before feature ideas or scale.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4
+- Separate `existing_project_audit` workflow for already-built products.
+- Audit stages for snapshot, market/positioning, offer/landing, acquisition, funnel/sales, economics, growth plan, execution and iteration.
+- Course-derived error taxonomy and deterministic audit findings.
+- Commercial readiness states instead of arbitrary scores.
+- Prioritized growth actions and post-change measurement loop.
+- `project_tick` host loop for automatic stage advance + next provider batch.
+- Audit MCP tools, CLI commands, schemas and regression tests.
+
+
 ## 1.3
 - Host-neutral capability routing.
 - Semrush/Ahrefs priority + fallback model.

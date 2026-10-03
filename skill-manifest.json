@@ -1,6 +1,6 @@
 {
   "name": "pet-project-launch-operator",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "language": "ru",
   "entrypoint": "SKILL.md",
   "runtime": {
@@ -8,7 +8,8 @@
     "python": ">=3.10",
     "cli": "saasskill",
     "mcp_entrypoint": "saasskill-mcp",
-    "state_store": ".saasskill/projects/<project_id>/state.json"
+    "state_store": ".saasskill/projects/<project_id>/state.json",
+    "runner": "project_tick"
   },
   "hosts": {
     "mcp": true,
@@ -52,7 +53,11 @@
     "approval_request",
     "lead_record",
     "funnel_snapshot",
-    "iteration"
+    "iteration",
+    "audit_snapshot",
+    "audit_report",
+    "growth_plan",
+    "commercial_readiness"
   ],
   "channels": [
     "search",
@@ -66,5 +71,34 @@
     "content",
     "avito",
     "app_store_asa"
-  ]
+  ],
+  "workflows": {
+    "greenfield": [
+      "intake",
+      "personal_concept",
+      "market_discovery",
+      "idea_generation",
+      "idea_selection",
+      "research_marketing",
+      "offer_landing",
+      "gtm_planning",
+      "launch",
+      "lead_onboarding",
+      "iteration_tracking",
+      "scale_or_pivot"
+    ],
+    "existing_project_audit": [
+      "audit_intake",
+      "audit_snapshot",
+      "audit_market_positioning",
+      "audit_offer_landing",
+      "audit_acquisition",
+      "audit_funnel_sales",
+      "audit_economics",
+      "audit_growth_plan",
+      "audit_execution",
+      "audit_iteration",
+      "audit_growth_loop"
+    ]
+  }
 }

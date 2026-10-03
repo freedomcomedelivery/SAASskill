@@ -36,6 +36,9 @@ def _item(
 
 def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
     """Translate current stage/gate gaps into host-neutral work items."""
+    if state.get("workflow") == "existing_project_audit":
+        from .audit_workplan import build_audit_work_queue
+        return build_audit_work_queue(state)
     stage = state.get("stage", "intake")
     gate = evaluate_stage(state, stage)
     q: list[dict[str, Any]] = []

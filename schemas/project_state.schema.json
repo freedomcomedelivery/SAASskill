@@ -25,7 +25,18 @@
         "launch",
         "lead_onboarding",
         "iteration_tracking",
-        "scale_or_pivot"
+        "scale_or_pivot",
+        "audit_intake",
+        "audit_snapshot",
+        "audit_market_positioning",
+        "audit_offer_landing",
+        "audit_acquisition",
+        "audit_funnel_sales",
+        "audit_economics",
+        "audit_growth_plan",
+        "audit_execution",
+        "audit_iteration",
+        "audit_growth_loop"
       ]
     },
     "runtime_version": {
@@ -165,6 +176,45 @@
       "items": {
         "type": "object"
       }
+    },
+    "workflow": {
+      "enum": [
+        "greenfield",
+        "existing_project_audit"
+      ]
+    },
+    "audit_snapshot": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "audit_report": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "growth_plan": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "selected_growth_action_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "commercial_readiness": {
+      "enum": [
+        "unknown",
+        "not_ready",
+        "ready_for_controlled_sales",
+        "sales_validated",
+        "ready_to_scale"
+      ]
     }
   },
   "required": [

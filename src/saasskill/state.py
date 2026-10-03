@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-STAGES = [
+GREENFIELD_STAGES = [
     "intake",
     "personal_concept",
     "market_discovery",
@@ -23,6 +23,26 @@ STAGES = [
     "scale_or_pivot",
 ]
 
+AUDIT_STAGES = [
+    "audit_intake",
+    "audit_snapshot",
+    "audit_market_positioning",
+    "audit_offer_landing",
+    "audit_acquisition",
+    "audit_funnel_sales",
+    "audit_economics",
+    "audit_growth_plan",
+    "audit_execution",
+    "audit_iteration",
+    "audit_growth_loop",
+]
+
+STAGES_BY_WORKFLOW = {
+    "greenfield": GREENFIELD_STAGES,
+    "existing_project_audit": AUDIT_STAGES,
+}
+STAGES = GREENFIELD_STAGES + AUDIT_STAGES
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -34,14 +54,34 @@ def slugify(value: str) -> str:
     return value or "project"
 
 
-def new_project_state(name: str, project_id: str | None = None) -> dict[str, Any]:
+def workflow_stages(workflow: str) -> list[str]:
+    try:
+        return STAGES_BY_WORKFLOW[workflow]
+    except KeyError as exc:
+        raise ValueError(f"Unknown workflow: {workflow}") from exc
+
+
+def infer_workflow(stage: str) -> str:
+    if stage in AUDIT_STAGES:
+        return "existing_project_audit"
+    return "greenfield"
+
+
+def new_project_state(
+    name: str,
+    project_id: str | None = None,
+    workflow: str = "greenfield",
+) -> dict[str, Any]:
+    stages = workflow_stages(workflow)
     project_id = project_id or f"{slugify(name)}-{uuid.uuid4().hex[:8]}"
     now = utc_now()
-    return {
+    initial_stage = stages[0]
+    state = {
         "project_id": project_id,
         "name": name,
-        "stage": "intake",
-        "runtime_version": "1.2.0",
+        "workflow": workflow,
+        "stage": initial_stage,
+        "runtime_version": "1.4.0",
         "personal_concept": None,
         "markets": [],
         "ideas": [],
@@ -57,10 +97,10 @@ def new_project_state(name: str, project_id: str | None = None) -> dict[str, Any
         "funnel_snapshots": [],
         "iterations": [],
         "blockers": [],
-        "next_action": "Define project scope and constraints.",
+        "next_action": None,
         "stage_history": [{
             "from": None,
-            "to": "intake",
+            "to": initial_stage,
             "at": now,
             "reason": "project_created",
             "forced": False,
@@ -68,9 +108,19 @@ def new_project_state(name: str, project_id: str | None = None) -> dict[str, Any
         "action_log": [],
         "pending_tool_requests": [],
         "tool_results": [],
+        "audit_snapshot": None,
+        "audit_report": None,
+        "growth_plan": None,
+        "selected_growth_action_id": None,
+        "commercial_readiness": "unknown",
         "created_at": now,
         "updated_at": now,
     }
+    if workflow == "greenfield":
+        state["next_action"] = "Define project scope and constraints."
+    else:
+        state["next_action"] = "Collect the existing product URL/assets, current offer, target, channels and any available metrics."
+    return state
 
 
 class ProjectStore:
@@ -85,8 +135,13 @@ class ProjectStore:
     def path(self, project_id: str) -> Path:
         return self._dir(project_id) / "state.json"
 
-    def create(self, name: str, project_id: str | None = None) -> dict[str, Any]:
-        state = new_project_state(name=name, project_id=project_id)
+    def create(
+        self,
+        name: str,
+        project_id: str | None = None,
+        workflow: str = "greenfield",
+    ) -> dict[str, Any]:
+        state = new_project_state(name=name, project_id=project_id, workflow=workflow)
         target = self.path(state["project_id"])
         if target.exists():
             raise FileExistsError(f"Project already exists: {state['project_id']}")
@@ -97,15 +152,22 @@ class ProjectStore:
         target = self.path(project_id)
         if not target.exists():
             raise FileNotFoundError(f"Unknown project: {project_id}")
-        return json.loads(target.read_text(encoding="utf-8"))
+        state = json.loads(target.read_text(encoding="utf-8"))
+        if not state.get("workflow"):
+            state["workflow"] = infer_workflow(state.get("stage", "intake"))
+        return state
 
     def save(self, state: dict[str, Any]) -> Path:
         project_id = state.get("project_id")
         if not project_id:
             raise ValueError("project_id is required")
-        if state.get("stage") not in STAGES:
-            raise ValueError(f"Invalid stage: {state.get('stage')}")
+        workflow = state.get("workflow") or infer_workflow(state.get("stage", "intake"))
+        stages = workflow_stages(workflow)
+        if state.get("stage") not in stages:
+            raise ValueError(f"Stage {state.get('stage')!r} does not belong to workflow {workflow!r}")
         state = deepcopy(state)
+        state["workflow"] = workflow
+        state["runtime_version"] = "1.4.0"
         state["updated_at"] = utc_now()
         target = self.path(project_id)
         target.parent.mkdir(parents=True, exist_ok=True)

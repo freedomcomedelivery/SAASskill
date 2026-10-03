@@ -29,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("init", help="Create project state")
     s.add_argument("name")
     s.add_argument("--project-id")
+    s.add_argument("--workflow", choices=["greenfield", "existing_project_audit"], default="greenfield")
 
     sub.add_parser("list", help="List local projects")
 
@@ -39,6 +40,17 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("route", help="Route the current work plan to available providers")
     s.add_argument("project_id")
     s.add_argument("--provider", action="append", default=[], help="Available logical provider: web, semrush, ahrefs, ads, analytics, crm")
+
+    s = sub.add_parser("tick", help="Advance passed stages and return next routed batch")
+    s.add_argument("project_id")
+    s.add_argument("--provider", action="append", default=[])
+    s.add_argument("--no-auto-advance", action="store_true")
+
+    s = sub.add_parser("audit-refresh", help="Refresh audit findings/readiness")
+    s.add_argument("project_id")
+
+    s = sub.add_parser("audit-priorities", help="Show ordered audit growth priorities")
+    s.add_argument("project_id")
 
     s = sub.add_parser("advance")
     s.add_argument("project_id")
@@ -83,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
     orch = Orchestrator(store)
 
     if args.command == "init":
-        _dump(store.create(args.name, args.project_id))
+        _dump(store.create(args.name, args.project_id, args.workflow))
         return 0
     if args.command == "list":
         _dump(store.list_projects())
@@ -104,6 +116,24 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "route":
         from .host_executor import HostExecutor
         _dump(HostExecutor(store).plan(args.project_id, available_providers=args.provider))
+        return 0
+    if args.command == "tick":
+        from .autopilot import ProjectRunner
+        _dump(ProjectRunner(store).tick(args.project_id, available_providers=args.provider, auto_advance=not args.no_auto_advance))
+        return 0
+    if args.command == "audit-refresh":
+        from .audit import refresh_audit_report
+        state = store.load(args.project_id)
+        if state.get("workflow") != "existing_project_audit":
+            raise SystemExit("audit-refresh requires existing_project_audit workflow")
+        report = refresh_audit_report(state)
+        store.save(state)
+        _dump(report)
+        return 0
+    if args.command == "audit-priorities":
+        from .audit import growth_priorities
+        state = store.load(args.project_id)
+        _dump(growth_priorities(state))
         return 0
     if args.command == "advance":
         state, gate = orch.advance(args.project_id, force=args.force, reason=args.reason)

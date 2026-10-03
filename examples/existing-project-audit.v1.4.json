@@ -1,0 +1,71 @@
+{
+  "project_id": "existing-saas-demo",
+  "name": "Existing SaaS",
+  "workflow": "existing_project_audit",
+  "stage": "audit_snapshot",
+  "runtime_version": "1.4.0",
+  "audit_snapshot": {
+    "product_url": "https://example.com",
+    "product_status": "live",
+    "geo": "US",
+    "avatars": [
+      "small agencies"
+    ],
+    "pains": [
+      "manual reporting"
+    ],
+    "benefits": [
+      "save analyst hours"
+    ],
+    "offer": {
+      "primary_benefit": "save analyst hours",
+      "primary_cta": "book demo"
+    },
+    "pricing": {
+      "monthly": 99
+    },
+    "channels": [
+      {
+        "name": "search",
+        "completed_iteration": false
+      }
+    ],
+    "primary_channel": "search",
+    "product_is_searched": true,
+    "controlled_funnel": true,
+    "funnel_definition": {
+      "steps": [
+        "reach",
+        "clicks",
+        "leads",
+        "qualified_leads",
+        "payments"
+      ]
+    },
+    "funnel": {
+      "reach": null,
+      "clicks": null,
+      "leads": null,
+      "qualified_leads": null,
+      "payments": null
+    },
+    "analytics": {
+      "configured": false
+    },
+    "sales_process": {}
+  },
+  "audit_report": {
+    "sections": {},
+    "findings": [],
+    "commercial_readiness": "unknown"
+  },
+  "growth_plan": null,
+  "selected_growth_action_id": null,
+  "commercial_readiness": "unknown",
+  "evidence": [],
+  "approvals": [],
+  "funnel_snapshots": [],
+  "iterations": [],
+  "pending_tool_requests": [],
+  "tool_results": []
+}

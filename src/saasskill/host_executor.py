@@ -24,6 +24,10 @@ PATCHABLE_ROOTS = {
     "leads",
     "funnel_snapshots",
     "iterations",
+    "audit_snapshot",
+    "audit_report",
+    "growth_plan",
+    "selected_growth_action_id",
 }
 
 
@@ -106,6 +110,9 @@ class HostExecutor:
                         "name": state.get("name"),
                         "selected_idea_id": state.get("selected_idea_id"),
                         "channel_plan": state.get("channel_plan"),
+                        "workflow": state.get("workflow"),
+                        "audit_snapshot": state.get("audit_snapshot"),
+                        "commercial_readiness": state.get("commercial_readiness"),
                     },
                 },
                 created_at=utc_now(),
@@ -223,6 +230,9 @@ class HostExecutor:
             "at": utc_now(),
         })
 
+        if state.get("workflow") == "existing_project_audit":
+            from .audit import refresh_audit_report
+            refresh_audit_report(state)
         gate = evaluate_stage(state)
         state["blockers"] = gate.missing or gate.reasons
         state["next_action"] = gate.next_action
