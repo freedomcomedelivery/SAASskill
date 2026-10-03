@@ -155,7 +155,7 @@ def _paid_pages_evidence(rows: list[dict[str, Any]], context: dict[str, Any]) ->
             "url": r.get("url") or r.get("page") or r.get("url_target"),
             "ads_count": r.get("ads_count"),
             "keywords": r.get("keywords"),
-            "traffic": r.get("traffic"),
+            "traffic": r.get("sum_traffic") if r.get("sum_traffic") is not None else r.get("traffic"),
             "value": r.get("value"),
         }
         for r in top
@@ -176,7 +176,7 @@ def _backlink_evidence(rows: list[dict[str, Any]], context: dict[str, Any]) -> l
     target = context.get("target") or "target"
     referring = set()
     for row in rows:
-        domain = row.get("domain_ref") or row.get("refdomain") or row.get("domain_from")
+        domain = row.get("domain") or row.get("domain_ref") or row.get("refdomain") or row.get("domain_from")
         if domain:
             referring.add(str(domain))
     claim = f"Ahrefs returned {len(rows)} backlink/referring-domain rows for {target}"
