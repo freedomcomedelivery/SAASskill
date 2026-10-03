@@ -52,10 +52,18 @@ def accessibility_to_surface(snapshot: dict[str, Any]) -> dict[str, Any]:
         line = raw.strip()
         if not line:
             continue
-        m = re.match(r"\[(heading|link|button)(?:\s+([^\]]+))?\]\s*(.*)", line, re.I)
-        if not m:
-            continue
-        kind, ref, label = m.group(1).lower(), (m.group(2) or "").strip(), (m.group(3) or "").strip()
+        # jo-inc/camofox-browser uses Playwright ARIA/YAML snapshots:
+        #   - heading "Hello World"
+        #   - link "Home" [e1]
+        # Keep bracket-first support for other MCP/browser adapters too.
+        m = re.match(r'-?\s*(heading|link|button)\s+"([^"]*)"(?:\s+\[(e\d+)\])?', line, re.I)
+        if m:
+            kind, label, ref = m.group(1).lower(), (m.group(2) or "").strip(), (m.group(3) or "").strip()
+        else:
+            m = re.match(r"\[(heading|link|button)(?:\s+([^\]]+))?\]\s*(.*)", line, re.I)
+            if not m:
+                continue
+            kind, ref, label = m.group(1).lower(), (m.group(2) or "").strip(), (m.group(3) or "").strip()
         if kind == "heading" and label:
             headings.append({"level": "heading", "text": label})
         elif kind == "link":
