@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AdvertisingCampaignDraft",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "channel": {
+      "enum": [
+        "search",
+        "meta",
+        "google_display",
+        "rsya",
+        "app_store_asa"
+      ]
+    },
+    "geo": {},
+    "conversion_event": {},
+    "landing_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "max_spend": {
+      "type": [
+        "number",
+        "integer",
+        "null"
+      ]
+    },
+    "daily_budget": {
+      "type": [
+        "number",
+        "integer",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "keywords": {
+      "type": "array"
+    },
+    "audience": {
+      "type": "object"
+    },
+    "creatives": {
+      "type": "array"
+    },
+    "tracking": {
+      "type": "object"
+    },
+    "stop_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "enum": [
+        "incomplete",
+        "ready_for_provider_render"
+      ]
+    },
+    "validation": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "channel",
+    "validation",
+    "status"
+  ],
+  "additionalProperties": true
+}
