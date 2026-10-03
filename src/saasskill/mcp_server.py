@@ -6,7 +6,7 @@ from typing import Any
 
 from mcp.server import MCPServer
 
-from .audit import growth_priorities, refresh_audit_report
+from .audit import build_growth_plan, growth_priorities, mark_audit_section, refresh_audit_report, update_growth_action
 from .autopilot import ProjectRunner
 from .host_executor import HostExecutor
 from .orchestrator import Orchestrator
@@ -118,6 +118,68 @@ def audit_growth_priorities(project_id: str) -> list[dict[str, Any]]:
     if state.get("workflow") != "existing_project_audit":
         raise ValueError("audit_growth_priorities requires workflow=existing_project_audit")
     return growth_priorities(state)
+
+
+@mcp.tool()
+def audit_mark_section(project_id: str, section: str, summary: str, evidence_ids: list[str]) -> dict[str, Any]:
+    """Mark one audit section complete after the host has collected/synthesized its evidence."""
+    store = _store()
+    state = store.load(project_id)
+    if state.get("workflow") != "existing_project_audit":
+        raise ValueError("audit_mark_section requires workflow=existing_project_audit")
+    out = mark_audit_section(state, section, summary=summary, evidence_ids=evidence_ids)
+    store.save(state)
+    return out
+
+
+@mcp.tool()
+def audit_build_growth_plan(project_id: str) -> dict[str, Any]:
+    """Build prioritized repair/growth actions from current open findings and readiness."""
+    store = _store()
+    state = store.load(project_id)
+    if state.get("workflow") != "existing_project_audit":
+        raise ValueError("audit_build_growth_plan requires workflow=existing_project_audit")
+    plan = build_growth_plan(state)
+    store.save(state)
+    return plan
+
+
+@mcp.tool()
+def audit_select_growth_action(project_id: str, action_id: str) -> dict[str, Any]:
+    """Select the next growth action from the generated plan."""
+    store = _store()
+    state = store.load(project_id)
+    actions = (state.get("growth_plan") or {}).get("actions") or []
+    action = next((x for x in actions if x.get("id") == action_id), None)
+    if action is None:
+        raise ValueError(f"Growth action not found: {action_id}")
+    state["selected_growth_action_id"] = action_id
+    store.save(state)
+    return action
+
+
+@mcp.tool()
+def audit_update_growth_action(project_id: str, action_id: str, status: str) -> dict[str, Any]:
+    """Update execution status for one growth action."""
+    store = _store()
+    state = store.load(project_id)
+    action = update_growth_action(state, action_id, status)
+    store.save(state)
+    return action
+
+
+@mcp.tool()
+def project_set_artifact(project_id: str, field: str, value: Any) -> dict[str, Any]:
+    """Set one project artifact without allowing direct stage mutation."""
+    allowed = {
+        "personal_concept", "markets", "ideas", "selected_idea_id", "research",
+        "marketing_contract", "landing_brief", "economics", "channel_plan",
+        "leads", "funnel_snapshots", "iterations", "audit_snapshot",
+        "audit_report", "growth_plan", "selected_growth_action_id",
+    }
+    if field not in allowed:
+        raise PermissionError(f"Artifact field is protected or unknown: {field}")
+    return Orchestrator(_store()).set_artifact(project_id, field, value)
 
 
 @mcp.tool()

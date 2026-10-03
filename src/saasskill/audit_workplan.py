@@ -38,6 +38,10 @@ def build_audit_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         return [_item("state", "audit_minimum_input", "Collect the product URL/assets and business goal; public facts should be researched instead of asked.", autonomous=False)]
 
     if stage == "audit_snapshot":
+        if not (snap.get("product_url") or snap.get("product_identity") or snap.get("assets")):
+            q.append(_item("user_input", "product_identity", "Provide the product URL or identify the existing product/assets.", autonomous=False))
+        if not snap.get("geo"):
+            q.append(_item("user_input", "geo", "Confirm the commercial geo if it cannot be inferred reliably.", autonomous=False))
         if snap.get("product_url"):
             q.append(_item("research", "product_surface", "Fetch the live product/landing and extract offer, pricing, CTA, target claims and product mechanism.", capability=WEB_FETCH))
         q.extend([

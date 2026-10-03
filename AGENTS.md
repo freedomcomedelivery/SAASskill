@@ -16,3 +16,9 @@ A fallback from an SEO provider to web is degraded evidence and must be marked a
 Never treat a web estimate as an authoritative keyword/traffic metric.
 
 External writes require explicit approval.
+
+
+For already-built products use `existing_project_audit`. Do not generate a generic
+SWOT or feature wishlist. Reconstruct factual market/offer/acquisition/funnel/sales/
+economics, close each audit section with evidence, then build and execute the growth
+plan. Findings that disappear after a fix must resolve automatically.

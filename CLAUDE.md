@@ -16,3 +16,12 @@ Preferred research providers are capability-based, not mandatory:
 - Ads for actual account/campaign/performance data and approved campaign writes.
 
 Do not invent provider data when a requested capability is unresolved.
+
+
+## Existing product audit
+When the user brings an existing product, initialize/use
+`workflow=existing_project_audit` instead of sending it through idea generation.
+Use `project_tick` as the loop. For each audit stage: execute routed provider
+requests, apply results, synthesize the section, call `audit_mark_section`, then
+tick again. After economics, call `audit_build_growth_plan` and execute the first
+selected repair/growth action with approval where required.

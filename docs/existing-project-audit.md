@@ -56,3 +56,22 @@ No numeric score is used.
   iteration(s).
 
 This is deliberately stricter than “site looks good”.
+
+
+## Operating commands / MCP tools
+
+After evidence is collected for a section, mark it explicitly with
+`audit_mark_section`. Do not mark a section from ungrounded model inference.
+
+Then:
+1. `audit_refresh` reconciles current findings and automatically resolves errors
+   that are no longer present.
+2. `audit_build_growth_plan` converts open findings into repair/growth actions.
+3. `audit_select_growth_action` chooses the next action.
+4. External side effects still require `approval_create → approval_decide`.
+5. `audit_update_growth_action` records prepared/running/executed/measured state.
+6. Run `project_tick` again to continue into measurement.
+
+When no open repair findings remain, the generated plan automatically changes from
+“fix the system” to a controlled sales test, repeatability work, or gradual scaling
+according to `commercial_readiness`.

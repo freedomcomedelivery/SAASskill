@@ -80,6 +80,57 @@ class ExistingProjectAuditTests(unittest.TestCase):
         state["iterations"] = [{"id": "i1", "actual": {"payments": 3}, "conclusion": "continue"}]
         self.assertEqual(commercial_readiness(state), "ready_to_scale")
 
+    def test_resolved_findings_do_not_block_forever(self):
+        state = self.store.create("Existing SaaS", "existing", "existing_project_audit")
+        state["audit_snapshot"] = {
+            "avatars": ["a", "b"], "pains": "p", "benefits": "b",
+            "controlled_funnel": False, "funnel": {},
+            "analytics": {"configured": False}, "sales_process": {}, "offer": {},
+        }
+        report = refresh_audit_report(state)
+        self.assertEqual(report["commercial_readiness"], "not_ready")
+        state["audit_snapshot"].update({
+            "avatars": "a",
+            "controlled_funnel": True,
+            "funnel_definition": {"steps": ["reach", "clicks", "leads", "qualified_leads", "payments"]},
+            "funnel": {"reach": 1000, "clicks": 100, "leads": 20, "qualified_leads": 10, "payments": 0},
+            "analytics": {"configured": True},
+            "sales_process": {
+                "qualification": "yes", "need_discovery": "yes",
+                "demo_or_value_delivery": "yes", "close_or_payment_ask": "yes",
+            },
+            "offer": {"primary_cta": "buy", "primary_benefit": "b"},
+            "economics": {"target_cac": 10, "ltv_estimate": 100},
+        })
+        report = refresh_audit_report(state)
+        resolved_codes = {x["code"] for x in report["findings"] if x["status"] == "resolved"}
+        self.assertIn("all_for_everyone", resolved_codes)
+        self.assertIn("funnel_of_fate", resolved_codes)
+        self.assertEqual(report["commercial_readiness"], "ready_for_controlled_sales")
+
+    def test_growth_plan_moves_to_controlled_sales_when_repairs_done(self):
+        from saasskill.audit import build_growth_plan
+        state = self.store.create("Existing SaaS", "existing", "existing_project_audit")
+        state["audit_snapshot"] = {
+            "product_status": "live", "avatars": "a", "pains": "p", "benefits": "b",
+            "primary_channel": "search", "product_is_searched": True,
+            "controlled_funnel": True,
+            "funnel_definition": {"steps": ["reach", "clicks", "leads", "qualified_leads", "payments"]},
+            "funnel": {"reach": 1000, "clicks": 100, "leads": 20, "qualified_leads": 10, "payments": 0},
+            "analytics": {"configured": True},
+            "sales_process": {
+                "qualification": "yes", "need_discovery": "yes",
+                "demo_or_value_delivery": "yes", "close_or_payment_ask": "yes",
+            },
+            "offer": {"primary_cta": "buy", "primary_benefit": "b"},
+            "economics": {"target_cac": 10, "ltv_estimate": 100},
+        }
+        plan = build_growth_plan(state)
+        self.assertEqual(plan["readiness"], "ready_for_controlled_sales")
+        self.assertEqual(plan["actions"][0]["id"], "action_controlled_sales_test")
+        self.assertTrue(plan["actions"][0]["side_effect"])
+        self.assertEqual(plan["actions"][0]["capability"], "ads.campaigns.write")
+
     def test_growth_priorities_put_blockers_first(self):
         state = self.store.create("Existing SaaS", "existing", "existing_project_audit")
         state["audit_snapshot"] = {

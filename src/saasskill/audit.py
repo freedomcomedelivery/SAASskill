@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-import uuid
+import re
 from copy import deepcopy
 from typing import Any
+
+from .capabilities import ADS_CAMPAIGNS_WRITE
+from .state import utc_now
 
 COURSE_ERROR_CLASSES = {
     "wrong_channel": "Wrong traffic channel / channel scatter",
@@ -30,6 +33,11 @@ def _count_primary(value: Any) -> int:
     return 1 if _present(value) else 0
 
 
+def _slug(value: str) -> str:
+    value = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    return value[:48] or "finding"
+
+
 def _finding(
     code: str,
     area: str,
@@ -40,10 +48,14 @@ def _finding(
     *,
     evidence_ids: list[str] | None = None,
     source: str = "course_methodology",
+    course_error_class: str | None = None,
 ) -> dict[str, Any]:
+    fingerprint = f"{code}:{_slug(title)}"
     return {
-        "id": f"finding_{uuid.uuid4().hex[:8]}",
+        "id": f"finding_{_slug(fingerprint)}",
+        "fingerprint": fingerprint,
         "code": code,
+        "course_error_class": course_error_class,
         "area": area,
         "severity": severity,
         "title": title,
@@ -57,7 +69,6 @@ def _finding(
 
 def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
     snap = state.get("audit_snapshot") or {}
-    report = state.get("audit_report") or {}
     findings: list[dict[str, Any]] = []
 
     avatars = snap.get("avatars") or snap.get("avatar")
@@ -69,16 +80,18 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
             "No single avatar → pain → benefit chain",
             "The existing project is not narrowed to one primary commercial segment/problem/benefit.",
             "Choose one primary avatar, one primary pain and one primary benefit for the next controlled sales funnel.",
+            course_error_class="all_for_everyone",
         ))
 
     channels = snap.get("channels") or []
     completed_channels = [c for c in channels if isinstance(c, dict) and c.get("completed_iteration")]
     if len(channels) > 1 and not completed_channels:
         findings.append(_finding(
-            "wrong_channel", "acquisition", "high",
-            "Channel scatter before one channel is debugged",
-            "Several channels are being tried without a finished, comparable iteration.",
-            "Choose one channel according to demand/audience logic and debug it to a measurable conclusion before switching.",
+            "channel_scatter", "acquisition", "high",
+            "Several channels are being tried before one is debugged",
+            "Multiple acquisition channels exist in the snapshot but none has a completed comparable iteration.",
+            "Choose one primary channel and debug it to a measurable conclusion before switching.",
+            course_error_class="wrong_channel",
         ))
 
     searched = snap.get("product_is_searched")
@@ -86,17 +99,19 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
     primary_channel = snap.get("primary_channel")
     if searched is True and primary_channel and primary_channel not in {"search", "marketplace", "app_store_asa"}:
         findings.append(_finding(
-            "wrong_channel", "acquisition", "high",
+            "wrong_channel_search_demand", "acquisition", "high",
             "Demand exists in search but primary GTM is elsewhere",
             f"Snapshot says the product is actively searched, while primary channel is {primary_channel}.",
-            "Test/repair a search or software-marketplace funnel before diversifying.",
+            "Test or repair a search/software-marketplace funnel before diversifying.",
+            course_error_class="wrong_channel",
         ))
     if searched is False and isinstance(audience, (int, float)) and audience < 10000 and primary_channel and primary_channel != "outreach":
         findings.append(_finding(
-            "wrong_channel", "acquisition", "high",
+            "wrong_channel_small_market", "acquisition", "high",
             "Small non-searchable market is not using direct outreach",
             "The target audience is small and the product is not actively searched.",
             "Use targeted outreach as the controlled acquisition channel for the next test.",
+            course_error_class="wrong_channel",
         ))
 
     if snap.get("controlled_funnel") is False or not snap.get("funnel_definition"):
@@ -105,6 +120,7 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
             "No controlled sales funnel",
             "The project cannot currently attribute outcomes through a defined reach/click/lead/qualified/payment path.",
             "Build one controlled funnel and send the target avatar through it before making product-level conclusions.",
+            course_error_class="funnel_of_fate",
         ))
 
     analytics = snap.get("analytics") or {}
@@ -117,14 +133,16 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
             "Funnel cannot be decomposed",
             f"Missing or unreliable metrics: {', '.join(missing_metrics) if missing_metrics else 'analytics configuration'}.",
             "Instrument the funnel and review the earliest meaningful break instead of judging the whole project at once.",
+            course_error_class="no_decomposition_debugging",
         ))
 
-    latest = (state.get("iterations") or [])[-1:] 
+    latest = (state.get("iterations") or [])[-1:]
     if latest:
         it = latest[0]
         actual = it.get("actual") or {}
         exposure = actual.get("reach") or actual.get("impressions") or 0
         leads = actual.get("leads") or 0
+        days = actual.get("days") or actual.get("duration_days")
         conclusion = it.get("conclusion")
         if conclusion in {"channel_change_candidate", "idea_change_candidate"} and exposure < 1000 and leads < 20:
             findings.append(_finding(
@@ -132,6 +150,15 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
                 "Strong conclusion from a very small sample",
                 "The latest iteration proposes a channel/idea-level conclusion before meaningful exposure/lead volume.",
                 "Keep the funnel homogeneous, collect more complete data, and repeat before making a project-level conclusion.",
+                course_error_class="premature_evaluation",
+            ))
+        if conclusion and isinstance(days, (int, float)) and days <= 2:
+            findings.append(_finding(
+                "rushing", "experimentation", "high",
+                "Channel was judged after a very short run",
+                f"The latest iteration records a conclusion after only {days:g} day(s).",
+                "Let the selected channel/funnel run long enough to collect useful comparable data before changing the system.",
+                course_error_class="rushing",
             ))
 
     sales = snap.get("sales_process") or {}
@@ -194,8 +221,7 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
             "Prioritize a controlled funnel and explicit payment ask before feature expansion.",
         ))
 
-    existing_codes = {f.get("code") for f in report.get("findings", [])}
-    return [f for f in findings if f["code"] not in existing_codes]
+    return findings
 
 
 def commercial_readiness(state: dict[str, Any], findings: list[dict[str, Any]] | None = None) -> str:
@@ -222,23 +248,69 @@ def commercial_readiness(state: dict[str, Any], findings: list[dict[str, Any]] |
 def refresh_audit_report(state: dict[str, Any]) -> dict[str, Any]:
     report = deepcopy(state.get("audit_report") or {})
     existing = report.get("findings", [])
-    new = derive_audit_findings({**state, "audit_report": report})
-    report["findings"] = existing + new
+    existing_by_fp = {f.get("fingerprint"): f for f in existing if f.get("fingerprint")}
+    current = derive_audit_findings(state)
+    current_fps = {f["fingerprint"] for f in current}
+
+    reconciled: list[dict[str, Any]] = []
+    for finding in current:
+        old = existing_by_fp.get(finding["fingerprint"])
+        if old:
+            finding["id"] = old.get("id", finding["id"])
+            finding["first_seen_at"] = old.get("first_seen_at") or old.get("created_at") or utc_now()
+        else:
+            finding["first_seen_at"] = utc_now()
+        finding["last_seen_at"] = utc_now()
+        finding["status"] = "open"
+        reconciled.append(finding)
+
+    for old in existing:
+        fp = old.get("fingerprint")
+        if fp and fp not in current_fps:
+            archived = deepcopy(old)
+            archived["status"] = "resolved"
+            archived.setdefault("resolved_at", utc_now())
+            reconciled.append(archived)
+
+    report["findings"] = reconciled
     report.setdefault("sections", {})
-    report["commercial_readiness"] = commercial_readiness(state, report["findings"])
+    report["commercial_readiness"] = commercial_readiness(state, current)
+    report["updated_at"] = utc_now()
     state["commercial_readiness"] = report["commercial_readiness"]
     state["audit_report"] = report
     return report
 
 
+def mark_audit_section(
+    state: dict[str, Any],
+    section: str,
+    *,
+    summary: str,
+    evidence_ids: list[str],
+    status: str = "audited",
+) -> dict[str, Any]:
+    if status not in {"audited", "complete", "pass"}:
+        raise ValueError("audit section status must be audited, complete or pass")
+    report = refresh_audit_report(state)
+    report.setdefault("sections", {})[section] = {
+        "status": status,
+        "summary": summary,
+        "evidence_ids": list(evidence_ids),
+        "updated_at": utc_now(),
+    }
+    state["audit_report"] = report
+    return report["sections"][section]
+
+
 def growth_priorities(state: dict[str, Any]) -> list[dict[str, Any]]:
     report = refresh_audit_report(state)
     order = {"blocking": 0, "high": 1, "medium": 2, "low": 3}
-    open_findings = [f for f in report.get("findings", []) if f.get("status", "open") == "open"]
+    open_findings = [f for f in report.get("findings", []) if f.get("status") == "open"]
     open_findings.sort(key=lambda x: (order.get(x.get("severity"), 9), x.get("area", "")))
     return [
         {
             "finding_id": f["id"],
+            "finding_fingerprint": f["fingerprint"],
             "priority": i + 1,
             "area": f["area"],
             "severity": f["severity"],
@@ -247,3 +319,78 @@ def growth_priorities(state: dict[str, Any]) -> list[dict[str, Any]]:
         }
         for i, f in enumerate(open_findings)
     ]
+
+
+def build_growth_plan(state: dict[str, Any]) -> dict[str, Any]:
+    report = refresh_audit_report(state)
+    priorities = growth_priorities(state)
+    actions: list[dict[str, Any]] = []
+
+    for p in priorities:
+        actions.append({
+            "id": f"action_{_slug(p['finding_fingerprint'])}",
+            "finding_id": p["finding_id"],
+            "description": p["action"],
+            "hypothesis": f"Resolving {p['problem']} will improve commercial readiness or the earliest broken funnel step.",
+            "capability": None,
+            "side_effect": False,
+            "status": "planned",
+        })
+
+    readiness = report["commercial_readiness"]
+    snap = state.get("audit_snapshot") or {}
+    primary_channel = snap.get("primary_channel")
+    ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
+
+    if not actions and readiness == "ready_for_controlled_sales":
+        actions.append({
+            "id": "action_controlled_sales_test",
+            "finding_id": None,
+            "description": "Run one controlled sales test through the selected primary channel and measure through qualified leads and payments.",
+            "hypothesis": "A coherent offer and funnel will produce a measurable qualified-lead/payment signal from the target avatar.",
+            "capability": ADS_CAMPAIGNS_WRITE if primary_channel in ad_channels else None,
+            "side_effect": True,
+            "status": "planned",
+        })
+    elif not actions and readiness == "sales_validated":
+        actions.append({
+            "id": "action_improve_repeatability",
+            "finding_id": None,
+            "description": "Repeat the validated funnel with a controlled budget and improve CAC/repeatability before scaling.",
+            "hypothesis": "The payment signal can be reproduced without degrading target-lead quality or economics.",
+            "capability": ADS_CAMPAIGNS_WRITE if primary_channel in ad_channels else None,
+            "side_effect": True,
+            "status": "planned",
+        })
+    elif not actions and readiness == "ready_to_scale":
+        actions.append({
+            "id": "action_scale_primary_channel",
+            "finding_id": None,
+            "description": "Scale the proven primary channel gradually while monitoring qualified-lead share, CAC and payment conversion.",
+            "hypothesis": "Increasing exposure can preserve funnel quality and viable economics.",
+            "capability": ADS_CAMPAIGNS_WRITE if primary_channel in ad_channels else None,
+            "side_effect": True,
+            "status": "planned",
+        })
+
+    plan = {
+        "readiness": readiness,
+        "priorities": priorities,
+        "actions": actions,
+        "generated_at": utc_now(),
+    }
+    state["growth_plan"] = plan
+    return plan
+
+
+def update_growth_action(state: dict[str, Any], action_id: str, status: str) -> dict[str, Any]:
+    allowed = {"planned", "prepared", "approved", "running", "executed", "measured", "cancelled"}
+    if status not in allowed:
+        raise ValueError(f"Invalid growth action status: {status}")
+    actions = (state.get("growth_plan") or {}).get("actions") or []
+    action = next((x for x in actions if x.get("id") == action_id), None)
+    if action is None:
+        raise ValueError(f"Growth action not found: {action_id}")
+    action["status"] = status
+    action["updated_at"] = utc_now()
+    return action

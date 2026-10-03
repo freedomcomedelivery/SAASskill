@@ -52,6 +52,24 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("audit-priorities", help="Show ordered audit growth priorities")
     s.add_argument("project_id")
 
+    s = sub.add_parser("audit-build-plan", help="Build a growth plan from open findings")
+    s.add_argument("project_id")
+
+    s = sub.add_parser("audit-mark-section", help="Mark an audit section complete")
+    s.add_argument("project_id")
+    s.add_argument("section")
+    s.add_argument("--summary", required=True)
+    s.add_argument("--evidence-id", action="append", default=[])
+
+    s = sub.add_parser("audit-select-action", help="Select a growth action")
+    s.add_argument("project_id")
+    s.add_argument("action_id")
+
+    s = sub.add_parser("audit-action-status", help="Update growth action status")
+    s.add_argument("project_id")
+    s.add_argument("action_id")
+    s.add_argument("status")
+
     s = sub.add_parser("advance")
     s.add_argument("project_id")
     s.add_argument("--force", action="store_true")
@@ -134,6 +152,37 @@ def main(argv: list[str] | None = None) -> int:
         from .audit import growth_priorities
         state = store.load(args.project_id)
         _dump(growth_priorities(state))
+        return 0
+    if args.command == "audit-build-plan":
+        from .audit import build_growth_plan
+        state = store.load(args.project_id)
+        plan = build_growth_plan(state)
+        store.save(state)
+        _dump(plan)
+        return 0
+    if args.command == "audit-mark-section":
+        from .audit import mark_audit_section
+        state = store.load(args.project_id)
+        out = mark_audit_section(state, args.section, summary=args.summary, evidence_ids=args.evidence_id)
+        store.save(state)
+        _dump(out)
+        return 0
+    if args.command == "audit-select-action":
+        state = store.load(args.project_id)
+        actions = (state.get("growth_plan") or {}).get("actions") or []
+        action = next((x for x in actions if x.get("id") == args.action_id), None)
+        if action is None:
+            raise SystemExit(f"growth action not found: {args.action_id}")
+        state["selected_growth_action_id"] = args.action_id
+        store.save(state)
+        _dump(action)
+        return 0
+    if args.command == "audit-action-status":
+        from .audit import update_growth_action
+        state = store.load(args.project_id)
+        action = update_growth_action(state, args.action_id, args.status)
+        store.save(state)
+        _dump(action)
         return 0
     if args.command == "advance":
         state, gate = orch.advance(args.project_id, force=args.force, reason=args.reason)

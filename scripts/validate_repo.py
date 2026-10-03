@@ -55,7 +55,7 @@ for req in required:
 try:
     manifest=json.loads((ROOT/'skill-manifest.json').read_text(encoding='utf-8'))
     if manifest.get('version') != '1.4.0':
-        errors.append(f"skill-manifest version must be 1.3.0, got {manifest.get('version')!r}")
+        errors.append(f"skill-manifest version must be 1.4.0, got {manifest.get('version')!r}")
     runtime=manifest.get('runtime') or {}
     if runtime.get('package') != 'saasskill':
         errors.append('skill-manifest.runtime.package must be saasskill')
