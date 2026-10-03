@@ -116,3 +116,20 @@ See [integration layer](docs/integrations.md), [ads](docs/ads-integrations.md),
 ## Before credentials
 
 All request builders, dry runs, normalizers, approval/execution contracts and mocked browser transports can be tested before adding secrets. See [pre-key checklist](docs/pre-key-checklist.md).
+
+
+## End-to-end integration layer
+
+The current v1.5 codebase can prepare and dry-run the full integration path before
+secrets are added:
+
+`project_tick → routed pending request → request builder → direct/MCP provider →
+normalizer → evidence/state merge → gate/readiness recalculation`.
+
+Paid acquisition also supports:
+
+`channel_plan → campaign draft → provider intent → immutable execution plan →
+exact approval → provider write → execution result`.
+
+See [integration docs](docs/integrations.md) and the
+[pre-key checklist](docs/pre-key-checklist.md).
