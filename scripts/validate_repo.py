@@ -46,7 +46,7 @@ required = [
     'src/saasskill/providers.py','src/saasskill/host_executor.py','src/saasskill/audit.py','src/saasskill/audit_workplan.py','src/saasskill/autopilot.py',
     'src/saasskill/mcp_server.py','tests/test_runtime.py',
     'tests/test_provider_routing.py','tests/test_audit_workflow.py','tests/test_runner.py','docs/mcp.md','docs/provider-routing.md','docs/existing-project-audit.md',
-    'CLAUDE.md','AGENTS.md','.mcp.json.example',
+    'CLAUDE.md','AGENTS.md','.mcp.json.example','evals/audit_cases.jsonl','references/audit-source-trace.md',
 ]
 for req in required:
     if not (ROOT/req).exists():
