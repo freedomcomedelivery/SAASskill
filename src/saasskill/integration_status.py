@@ -36,10 +36,8 @@ INTEGRATIONS = {
     "apple_ads": {
         "preferred": "official_platform_api_v1",
         "package_optional": "asa_api_client",
-        "direct_env_any": [
-            ["APPLE_ADS_ACCESS_TOKEN"],
-            ["APPLE_ADS_CLIENT_ID", "APPLE_ADS_TEAM_ID", "APPLE_ADS_KEY_ID", "APPLE_ADS_PRIVATE_KEY_PATH"],
-        ],
+        "direct_env_any": [["APPLE_ADS_ACCESS_TOKEN"]],
+        "oauth_material_env": ["APPLE_ADS_CLIENT_ID", "APPLE_ADS_TEAM_ID", "APPLE_ADS_KEY_ID", "APPLE_ADS_PRIVATE_KEY_PATH"],
     },
     "camoufox": {
         "preferred": "local_optional_dependency",
@@ -88,6 +86,8 @@ def integration_status(name: str) -> dict[str, Any]:
         "package_available": package_available,
         "direct_mode_configured": configured,
         "credential_groups": group_status,
+        "oauth_material_env": spec.get("oauth_material_env", []),
+        "oauth_material_present": all(os.getenv(k) for k in spec.get("oauth_material_env", [])) if spec.get("oauth_material_env") else None,
         "note": "Remote MCP/OAuth connectivity is host-managed and cannot be inferred from local environment variables.",
     }
 

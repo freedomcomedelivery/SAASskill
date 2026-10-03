@@ -276,7 +276,14 @@ def normalize_ads_inventory(
     if capability not in {"ads.accounts.read", "ads.campaigns.read"}:
         raise ValueError("Inventory normalizer accepts ads.accounts.read or ads.campaigns.read")
     context = dict(context or {})
-    rows = _inventory_rows(provider, payload)
+    normalized_payload = payload
+    if provider == "apple_ads" and capability == "ads.accounts.read" and isinstance(payload, dict):
+        acls = ((payload.get("result") or {}).get("acls") if isinstance(payload.get("result"), dict) else None) or []
+        normalized_payload = [
+            {**(item.get("adAccount") or {}), "roles": item.get("roles") or []}
+            for item in acls if isinstance(item, dict)
+        ]
+    rows = _inventory_rows(provider, normalized_payload)
     label = "accounts" if capability == "ads.accounts.read" else "campaigns"
     target = context.get("account_id") or context.get("target") or "account"
     merge_patch = {}

@@ -25,3 +25,7 @@ jobs:
         env:
           PYTHONPATH: src
         run: python scripts/demo_runtime.py
+      - name: Integration dry-run smoke
+        env:
+          PYTHONPATH: src
+        run: python scripts/smoke_integrations.py

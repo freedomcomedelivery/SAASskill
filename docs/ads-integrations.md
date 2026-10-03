@@ -39,3 +39,18 @@ exist. It currently emits:
 
 This is intentional: unit tests can validate request shape now, while credentialed
 integration tests are postponed until OAuth/API keys are connected.
+
+
+## Direct read executor
+
+`ads_execute_read_request` executes the credential-free specs when direct-mode
+credentials are present. It defaults to `dry_run=true`.
+
+Implemented direct reads:
+- Google Ads: official Python SDK, `GoogleAdsClient.load_from_env()`;
+- Meta Ads: official `facebook-business` SDK;
+- Yandex Direct: official v5/v501 HTTP APIs;
+- Apple Ads: Platform API v1 HTTP with an access token.
+
+This executor intentionally performs no writes. Writes remain a separate
+plan-bound approval flow.

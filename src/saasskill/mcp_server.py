@@ -11,6 +11,7 @@ from .autopilot import ProjectRunner
 from .ahrefs import normalize_ahrefs_result
 from .ads import normalize_ads_result
 from .ad_requests import build_ads_read_request
+from .direct_ads_transport import execute_ads_read_request
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
 from .parser_normalizer import normalize_public_page_result
 from .executors import ExecutionManager, execution_plan_digest
@@ -147,6 +148,16 @@ def ads_build_read_request(
         date_to=date_to,
         level=level,
     )
+
+
+@mcp.tool()
+def ads_execute_read_request(
+    spec: dict[str, Any],
+    dry_run: bool = True,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Execute a concrete ads read request directly; defaults to dry-run and never performs writes."""
+    return execute_ads_read_request(spec, dry_run=dry_run, timeout=timeout)
 
 
 @mcp.tool()
