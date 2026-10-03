@@ -24,6 +24,8 @@ CTA_WORDS = (
     "демо", "связаться", "заказать",
 )
 
+_TRACKED_TEXT_TAGS = {"title", "h1", "h2", "h3", "a", "button", "script"}
+
 
 def validate_public_url(url: str, allowed_domains: set[str] | None = None) -> str:
     parsed = urlparse(url)
@@ -36,8 +38,11 @@ def validate_public_url(url: str, allowed_domains: set[str] | None = None) -> st
         raise ValueError("URL hostname is required")
     if host in {"localhost", "localhost.localdomain"} or host.endswith(".local"):
         raise PermissionError("Local/private hosts are not allowed")
-    if allowed_domains and host not in allowed_domains and not any(host.endswith("." + d) for d in allowed_domains):
-        raise PermissionError(f"Host is outside allowed_domains: {host}")
+
+    if allowed_domains:
+        allowed = {str(d).lower().rstrip(".") for d in allowed_domains}
+        if host not in allowed and not any(host.endswith("." + d) for d in allowed):
+            raise PermissionError(f"Host is outside allowed_domains: {host}")
 
     try:
         literal = ipaddress.ip_address(host)
@@ -51,7 +56,14 @@ def validate_public_url(url: str, allowed_domains: set[str] | None = None) -> st
             pass
 
     for ip in addresses:
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
             raise PermissionError(f"Private/reserved address is not allowed: {ip}")
     return url
 
@@ -67,57 +79,63 @@ class _Extractor(HTMLParser):
         self.forms = 0
         self.inputs: list[dict[str, str]] = []
         self.json_ld: list[Any] = []
-        self._tag: str | None = None
-        self._attrs: dict[str, str] = {}
-        self._text: list[str] = []
-        self._script_jsonld = False
+        self._frames: list[dict[str, Any]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        self._tag = tag.lower()
-        self._attrs = {k.lower(): (v or "") for k, v in attrs}
-        self._text = []
-        if tag.lower() == "meta":
-            if self._attrs.get("name", "").lower() == "description":
-                self.meta_description = self._attrs.get("content", "")
-        elif tag.lower() == "form":
+        lower = tag.lower()
+        attr_map = {k.lower(): (v or "") for k, v in attrs}
+
+        if lower == "meta" and attr_map.get("name", "").lower() == "description":
+            self.meta_description = attr_map.get("content", "")
+        elif lower == "form":
             self.forms += 1
-        elif tag.lower() == "input":
+        elif lower == "input":
             self.inputs.append({
-                "type": self._attrs.get("type", "text"),
-                "name": self._attrs.get("name", ""),
-                "placeholder": self._attrs.get("placeholder", ""),
+                "type": attr_map.get("type", "text"),
+                "name": attr_map.get("name", ""),
+                "placeholder": attr_map.get("placeholder", ""),
             })
-        elif tag.lower() == "script" and self._attrs.get("type", "").lower() == "application/ld+json":
-            self._script_jsonld = True
+
+        if lower in _TRACKED_TEXT_TAGS:
+            self._frames.append({
+                "tag": lower,
+                "attrs": attr_map,
+                "text": [],
+                "jsonld": lower == "script" and attr_map.get("type", "").lower() == "application/ld+json",
+            })
 
     def handle_data(self, data: str) -> None:
-        if self._tag:
-            self._text.append(data)
+        # Append to every tracked open ancestor so <a><span>Start</span></a>
+        # preserves "Start" for the anchor.
+        for frame in self._frames:
+            frame["text"].append(data)
 
     def handle_endtag(self, tag: str) -> None:
-        text = " ".join(" ".join(self._text).split()).strip()
         lower = tag.lower()
+        idx = next((i for i in range(len(self._frames) - 1, -1, -1) if self._frames[i]["tag"] == lower), None)
+        if idx is None:
+            return
+        frame = self._frames.pop(idx)
+        text = " ".join("".join(frame["text"]).split()).strip()
+        attrs = frame["attrs"]
+
         if lower == "title" and text:
             self.title = text
         elif lower in {"h1", "h2", "h3"} and text:
             self.headings.append({"level": lower, "text": text})
         elif lower == "a":
-            href = self._attrs.get("href", "")
+            href = attrs.get("href", "")
             if href or text:
                 self.links.append({"href": href, "text": text})
         elif lower == "button" and text:
             self.buttons.append(text)
-        elif lower == "script" and self._script_jsonld:
-            raw = "".join(self._text).strip()
+        elif lower == "script" and frame.get("jsonld"):
+            raw = "".join(frame["text"]).strip()
             if raw:
                 try:
                     self.json_ld.append(json.loads(raw))
                 except json.JSONDecodeError:
                     pass
-            self._script_jsonld = False
-        self._tag = None
-        self._attrs = {}
-        self._text = []
 
 
 def extract_html_snapshot(html: str, *, url: str | None = None) -> dict[str, Any]:
@@ -130,7 +148,11 @@ def extract_html_snapshot(html: str, *, url: str | None = None) -> dict[str, Any
         low = candidate.lower()
         if candidate and any(word in low for word in CTA_WORDS):
             ctas.append(candidate)
-    prices = re.findall(r"(?:[$€£₽₾]\s?\d[\d,.]*|\d[\d,.]*\s?(?:USD|EUR|RUB|GEL|₽|₾))", all_text, flags=re.I)
+    prices = re.findall(
+        r"(?:[$€£₽₾]\s?\d[\d,.]*|\d[\d,.]*\s?(?:USD|EUR|RUB|GEL|₽|₾))",
+        all_text,
+        flags=re.I,
+    )
     challenge = any(marker in all_text.lower() for marker in CHALLENGE_MARKERS)
     return {
         "url": url,
@@ -158,10 +180,15 @@ def fetch_public_page(
 ) -> dict[str, Any]:
     """Fetch one public page with Camoufox.
 
-    No login automation, CAPTCHA solving, challenge bypass, proxy rotation or
-    authenticated-session import is implemented here.
+    Requests are restricted to an explicit domain allowlist (the initial hostname
+    by default) and public IP space. No login automation, CAPTCHA solving,
+    challenge bypass, proxy rotation or authenticated-session import is implemented.
     """
     validate_public_url(url, allowed_domains)
+    origin = (urlparse(url).hostname or "").lower().rstrip(".")
+    effective_allowed = {str(x).lower().rstrip(".") for x in (allowed_domains or {origin})}
+    effective_allowed.add(origin)
+
     try:
         from camoufox.sync_api import Camoufox
     except ImportError as exc:
@@ -169,12 +196,25 @@ def fetch_public_page(
 
     with Camoufox(headless=headless) as browser:
         page = browser.new_page()
+
+        def guard_request(route: Any) -> None:
+            request_url = route.request.url
+            try:
+                validate_public_url(request_url, effective_allowed)
+            except (ValueError, PermissionError):
+                route.abort()
+                return
+            route.continue_()
+
+        page.route("**/*", guard_request)
         response = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+        validate_public_url(page.url, effective_allowed)
         html = page.content()
         snapshot = extract_html_snapshot(html, url=page.url)
         snapshot["http_status"] = response.status if response else None
         snapshot["requested_url"] = url
         snapshot["blocked_by_challenge"] = bool(snapshot["challenge_detected"])
+        snapshot["allowed_domains"] = sorted(effective_allowed)
         return snapshot
 
 
@@ -191,7 +231,9 @@ def crawl_public(
     if max_depth < 0 or max_depth > 3:
         raise ValueError("max_depth must be between 0 and 3")
     start = validate_public_url(start_url, allowed_domains)
-    origin = urlparse(start).hostname or ""
+    origin = (urlparse(start).hostname or "").lower().rstrip(".")
+    effective_allowed = {str(x).lower().rstrip(".") for x in (allowed_domains or {origin})}
+    effective_allowed.add(origin)
     queue: list[tuple[str, int]] = [(start, 0)]
     seen: set[str] = set()
     out: list[dict[str, Any]] = []
@@ -201,7 +243,7 @@ def crawl_public(
         if url in seen:
             continue
         seen.add(url)
-        snap = fetch_public_page(url, allowed_domains=allowed_domains or {origin})
+        snap = fetch_public_page(url, allowed_domains=effective_allowed)
         out.append(snap)
         if snap.get("blocked_by_challenge") or depth >= max_depth:
             continue
@@ -209,7 +251,12 @@ def crawl_public(
             href = link.get("href") or ""
             candidate = urljoin(url, href)
             parsed = urlparse(candidate)
-            if parsed.hostname == origin and parsed.scheme in {"http", "https"} and candidate not in seen:
+            host = (parsed.hostname or "").lower().rstrip(".")
+            if (
+                parsed.scheme in {"http", "https"}
+                and host in effective_allowed
+                and candidate not in seen
+            ):
                 queue.append((candidate, depth + 1))
         if delay_seconds:
             time.sleep(max(0.0, delay_seconds))

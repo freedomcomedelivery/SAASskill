@@ -25,3 +25,13 @@ Default safety contract:
 The deployment environment should also enforce outbound-network restrictions because
 application-level hostname checks are not a substitute for infrastructure egress
 controls.
+
+
+## Network isolation
+
+The browser now routes every HTTP request through the public-URL/domain guard, not
+only the initial navigation. By default only the initial hostname is permitted.
+Extra CDN/API hostnames must be explicitly added to `allowed_domains`.
+
+This reduces redirect/subresource SSRF risk. Production deployments should still
+enforce an outbound-network policy at container/VM level.
