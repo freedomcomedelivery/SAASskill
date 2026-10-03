@@ -1,13 +1,27 @@
 {
   "available_providers": [
     "web",
+    "camoufox",
     "semrush",
     "ahrefs",
-    "ads",
-    "analytics",
-    "crm"
+    "google_ads",
+    "meta_ads",
+    "yandex_direct",
+    "apple_ads",
+    "posthog",
+    "ga4",
+    "yandex_metrica",
+    "hubspot",
+    "stripe"
   ],
   "preferences": {
+    "web.fetch": [
+      "web",
+      "camoufox"
+    ],
+    "web.browser_parse": [
+      "camoufox"
+    ],
     "seo.keyword_metrics": [
       "semrush",
       "ahrefs"
@@ -21,16 +35,35 @@
       "ahrefs"
     ],
     "seo.backlinks": [
-      "ahrefs"
-    ],
-    "seo.competitor_ads": [
+      "ahrefs",
       "semrush"
     ],
+    "seo.competitor_ads": [
+      "semrush",
+      "ahrefs"
+    ],
     "ads.performance.read": [
-      "ads"
+      "google_ads",
+      "meta_ads",
+      "yandex_direct",
+      "apple_ads"
     ],
     "ads.campaigns.write": [
-      "ads"
+      "google_ads",
+      "meta_ads",
+      "yandex_direct",
+      "apple_ads"
+    ],
+    "analytics.funnel.read": [
+      "posthog",
+      "ga4",
+      "yandex_metrica"
+    ],
+    "crm.leads.read": [
+      "hubspot"
+    ],
+    "payments.transactions.read": [
+      "stripe"
     ]
   }
 }
