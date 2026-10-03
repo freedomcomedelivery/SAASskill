@@ -130,6 +130,21 @@ class ExistingProjectAuditTests(unittest.TestCase):
         self.assertEqual(plan["actions"][0]["id"], "action_controlled_sales_test")
         self.assertTrue(plan["actions"][0]["side_effect"])
         self.assertEqual(plan["actions"][0]["capability"], "ads.campaigns.write")
+        self.assertEqual(state["selected_growth_action_id"], "action_controlled_sales_test")
+
+    def test_foundational_high_findings_are_not_sales_ready(self):
+        state = self.store.create("Existing SaaS", "existing", "existing_project_audit")
+        state["audit_snapshot"] = {
+            "avatars": "a", "pains": "p", "benefits": "b",
+            "controlled_funnel": True,
+            "funnel_definition": {"steps": ["reach", "clicks", "leads", "qualified_leads", "payments"]},
+            "funnel": {"reach": 1000, "clicks": 100, "leads": 20, "qualified_leads": 10, "payments": 0},
+            "analytics": {"configured": True},
+            "sales_process": {},
+            "offer": {"primary_cta": "buy", "primary_benefit": "b"},
+            "economics": {"target_cac": 10, "ltv_estimate": 100},
+        }
+        self.assertEqual(commercial_readiness(state), "not_ready")
 
     def test_growth_priorities_put_blockers_first(self):
         state = self.store.create("Existing SaaS", "existing", "existing_project_audit")

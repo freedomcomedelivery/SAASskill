@@ -194,11 +194,12 @@ class HostExecutor:
         normalized["observed_at"] = normalized.get("observed_at") or utc_now()
         state.setdefault("tool_results", []).append(normalized)
 
+        added_evidence_ids: list[str] = []
         for ev in normalized.get("evidence", []) or []:
             notes = ev.get("notes")
             provenance = f"provider={provider}; capability={capability}; degraded={degraded}"
             notes = f"{notes}; {provenance}" if notes else provenance
-            add_evidence(
+            added = add_evidence(
                 state,
                 kind=ev.get("kind", "fact"),
                 claim=ev["claim"],
@@ -210,6 +211,7 @@ class HostExecutor:
                 assumptions=ev.get("assumptions", []),
                 notes=notes,
             )
+            added_evidence_ids.append(added["id"])
 
         patch = normalized.get("state_patch") or {}
         forbidden = sorted(set(patch) - PATCHABLE_ROOTS)
@@ -242,5 +244,6 @@ class HostExecutor:
             "stage": state.get("stage"),
             "gate": gate.to_dict(),
             "evidence_count": len(state.get("evidence", [])),
+            "evidence_ids_added": added_evidence_ids,
             "next_action": state.get("next_action"),
         }

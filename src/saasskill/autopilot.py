@@ -49,6 +49,12 @@ class ProjectRunner:
                 "gate": evaluate_stage(state).to_dict(),
             }
 
+        if state.get("workflow") == "existing_project_audit" and state.get("stage") == "audit_growth_plan" and not state.get("growth_plan"):
+            from .audit import build_growth_plan
+            build_growth_plan(state)
+            self.store.save(state)
+            state = self.store.load(project_id)
+
         gate = evaluate_stage(state)
         advanced = None
         if gate.passed and auto_advance:

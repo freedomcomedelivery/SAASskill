@@ -75,3 +75,10 @@ Then:
 When no open repair findings remain, the generated plan automatically changes from
 “fix the system” to a controlled sales test, repeatability work, or gradual scaling
 according to `commercial_readiness`.
+
+
+The generated growth plan auto-selects the first priority action. Selection is not
+execution. Any side effect still waits for explicit approval.
+
+When a provider result adds evidence, `project_apply_result` returns
+`evidence_ids_added`; use those IDs when calling `audit_mark_section`.

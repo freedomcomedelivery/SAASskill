@@ -106,6 +106,7 @@ class ProviderRouterTests(unittest.TestCase):
                 "state_patch": {"markets": [{"name": "M", "definition": "D"}]},
             })
             self.assertEqual(out["evidence_count"], 1)
+            self.assertEqual(len(out["evidence_ids_added"]), 1)
             state = store.load("x")
             self.assertEqual(state["markets"][0]["name"], "M")
             self.assertIn("provider=ahrefs", state["evidence"][0]["notes"])

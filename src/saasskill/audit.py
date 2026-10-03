@@ -227,6 +227,17 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
 def commercial_readiness(state: dict[str, Any], findings: list[dict[str, Any]] | None = None) -> str:
     findings = findings if findings is not None else derive_audit_findings(state)
     open_blockers = [f for f in findings if f.get("severity") == "blocking" and f.get("status", "open") == "open"]
+    foundational_high = {
+        "channel_scatter",
+        "wrong_channel_search_demand",
+        "wrong_channel_small_market",
+        "sales_process_gap",
+        "economics_unknown",
+    }
+    hard_high = [
+        f for f in findings
+        if f.get("status", "open") == "open" and f.get("code") in foundational_high
+    ]
     snap = state.get("audit_snapshot") or {}
     funnel = snap.get("funnel") or {}
     payments = funnel.get("payments")
@@ -235,7 +246,7 @@ def commercial_readiness(state: dict[str, Any], findings: list[dict[str, Any]] |
     economics = state.get("economics") or snap.get("economics") or {}
     finished = [x for x in state.get("iterations", []) if x.get("actual") and x.get("conclusion")]
 
-    if open_blockers:
+    if open_blockers or hard_high:
         return "not_ready"
     if not payments:
         return "ready_for_controlled_sales"
@@ -311,6 +322,7 @@ def growth_priorities(state: dict[str, Any]) -> list[dict[str, Any]]:
         {
             "finding_id": f["id"],
             "finding_fingerprint": f["fingerprint"],
+            "code": f["code"],
             "priority": i + 1,
             "area": f["area"],
             "severity": f["severity"],
@@ -326,7 +338,7 @@ def build_growth_plan(state: dict[str, Any]) -> dict[str, Any]:
     priorities = growth_priorities(state)
     actionable_priorities = [
         p for p in priorities
-        if not (report["commercial_readiness"] == "ready_for_controlled_sales" and p.get("problem") == "Live product has no recorded payment signal")
+        if not (report["commercial_readiness"] == "ready_for_controlled_sales" and p.get("code") == "no_payment_signal")
     ]
     actions: list[dict[str, Any]] = []
 
@@ -384,6 +396,8 @@ def build_growth_plan(state: dict[str, Any]) -> dict[str, Any]:
         "generated_at": utc_now(),
     }
     state["growth_plan"] = plan
+    if actions:
+        state["selected_growth_action_id"] = actions[0]["id"]
     return plan
 
 
