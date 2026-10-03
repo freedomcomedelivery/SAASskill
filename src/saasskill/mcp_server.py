@@ -10,6 +10,7 @@ from .audit import build_growth_plan, growth_priorities, mark_audit_section, ref
 from .autopilot import ProjectRunner
 from .ahrefs import normalize_ahrefs_result
 from .ads import normalize_ads_result
+from .ad_requests import build_ads_read_request
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
 from .executors import ExecutionManager
 from .semrush import normalize_semrush_result
@@ -108,9 +109,36 @@ def provider_normalize_ads(
     request_id: str,
     payload: Any,
     context: dict[str, Any] | None = None,
+    capability: str = "ads.performance.read",
 ) -> dict[str, Any]:
-    """Normalize Google/Meta/Yandex/Apple advertising performance data."""
-    return normalize_ads_result(provider=provider, request_id=request_id, payload=payload, context=context)
+    """Normalize accounts, campaigns or performance data from an ads provider."""
+    return normalize_ads_result(
+        provider=provider,
+        request_id=request_id,
+        payload=payload,
+        context=context,
+        capability=capability,
+    )
+
+
+@mcp.tool()
+def ads_build_read_request(
+    provider: str,
+    capability: str,
+    account_id: str,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    level: str = "campaign",
+) -> dict[str, Any]:
+    """Build a credential-free concrete read request for an advertising provider."""
+    return build_ads_read_request(
+        provider=provider,
+        capability=capability,
+        account_id=account_id,
+        date_from=date_from,
+        date_to=date_to,
+        level=level,
+    )
 
 
 @mcp.tool()

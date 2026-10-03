@@ -44,6 +44,28 @@ class ProviderRouterTests(unittest.TestCase):
             self.assertEqual(len(persisted), 3)
             self.assertTrue(all(x["status"] == "pending" for x in persisted))
 
+    def test_side_effect_tool_results_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = ProjectStore(Path(tmp) / "projects")
+            state = store.create("X", "x")
+            state["stage"] = "launch"
+            state["approvals"] = [{"id": "a1", "status": "approved"}]
+            store.save(state)
+            executor = HostExecutor(store)
+            # Simulate a legacy pending side-effect request: v1.5 must reject it.
+            state = store.load("x")
+            state["pending_tool_requests"] = [{
+                "request_id": "req_write", "status": "pending",
+                "provider": "google_ads", "effective_capability": "ads.campaigns.write",
+                "side_effect": True, "degraded": False,
+            }]
+            store.save(state)
+            with self.assertRaises(PermissionError):
+                executor.apply_result("x", {
+                    "request_id": "req_write", "status": "ok",
+                    "provider": "google_ads", "capability": "ads.campaigns.write",
+                })
+
     def test_apply_result_rejects_unknown_request(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = ProjectStore(Path(tmp) / "projects")

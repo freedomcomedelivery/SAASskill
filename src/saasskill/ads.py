@@ -208,6 +208,87 @@ def normalize_apple_ads_result(*, request_id: str, payload: Any, context: dict[s
     return _envelope(request_id, "apple_ads", out, payload, context)
 
 
+
+
+def _inventory_rows(provider: str, payload: Any) -> list[dict[str, Any]]:
+    rows = _rows(payload)
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        if provider == "google_ads":
+            budget_micros = _num(_dig(r, "campaign_budget.amount_micros", "budget_micros"))
+            out.append({
+                "id": _dig(r, "campaign.id", "customer.id", "id"),
+                "name": _dig(r, "campaign.name", "customer.descriptive_name", "name"),
+                "status": _dig(r, "campaign.status", "status"),
+                "channel": _dig(r, "campaign.advertising_channel_type", "channel"),
+                "budget": budget_micros / 1_000_000 if budget_micros is not None else None,
+                "raw": deepcopy(r),
+            })
+        elif provider == "meta_ads":
+            out.append({
+                "id": r.get("id") or r.get("account_id"),
+                "name": r.get("name"),
+                "status": r.get("effective_status") or r.get("status") or r.get("account_status"),
+                "channel": "META",
+                "budget": _num(r.get("daily_budget") or r.get("lifetime_budget")),
+                "raw": deepcopy(r),
+            })
+        elif provider == "yandex_direct":
+            out.append({
+                "id": r.get("Id") or r.get("CampaignId") or r.get("Login"),
+                "name": r.get("Name") or r.get("CampaignName") or r.get("ClientInfo"),
+                "status": r.get("Status") or r.get("State"),
+                "channel": r.get("Type") or "YANDEX_DIRECT",
+                "budget": _num(_dig(r, "DailyBudget.Amount", "DailyBudget", "Budget")),
+                "raw": deepcopy(r),
+            })
+        elif provider == "apple_ads":
+            out.append({
+                "id": _dig(r, "id", "campaignId", "adAccountId"),
+                "name": _dig(r, "name", "campaignName"),
+                "status": r.get("status"),
+                "channel": "APPLE_ADS",
+                "budget": _num(_dig(r, "dailyBudgetAmount.amount", "budgetAmount.amount", "dailyBudget", "budget")),
+                "raw": deepcopy(r),
+            })
+        else:
+            out.append({"raw": deepcopy(r)})
+    return out
+
+
+def normalize_ads_inventory(
+    *,
+    provider: str,
+    request_id: str,
+    capability: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if capability not in {"ads.accounts.read", "ads.campaigns.read"}:
+        raise ValueError("Inventory normalizer accepts ads.accounts.read or ads.campaigns.read")
+    context = dict(context or {})
+    rows = _inventory_rows(provider, payload)
+    label = "accounts" if capability == "ads.accounts.read" else "campaigns"
+    target = context.get("account_id") or context.get("target") or "account"
+    return {
+        "request_id": request_id,
+        "provider": provider,
+        "capability": capability,
+        "degraded": False,
+        "status": "ok",
+        "data": {"context": context, "rows": rows, "raw": payload},
+        "evidence": [{
+            "kind": "fact",
+            "claim": f"{provider} returned {len(rows)} {label} for {target}.",
+            "source_ref": context.get("source_ref") or f"provider://{provider}/{label}/{target}",
+            "source_title": f"{provider} {label}",
+            "confidence": 0.99,
+            "notes": f"Normalized inventory rows: {rows[:20]}",
+        }],
+        "state_patch": {},
+    }
+
+
 NORMALIZERS = {
     "google_ads": normalize_google_ads_result,
     "meta_ads": normalize_meta_ads_result,
@@ -216,7 +297,24 @@ NORMALIZERS = {
 }
 
 
-def normalize_ads_result(*, provider: str, request_id: str, payload: Any, context: dict[str, Any] | None = None) -> dict[str, Any]:
+def normalize_ads_result(
+    *,
+    provider: str,
+    request_id: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+    capability: str = "ads.performance.read",
+) -> dict[str, Any]:
+    if capability in {"ads.accounts.read", "ads.campaigns.read"}:
+        return normalize_ads_inventory(
+            provider=provider,
+            request_id=request_id,
+            capability=capability,
+            payload=payload,
+            context=context,
+        )
+    if capability != "ads.performance.read":
+        raise ValueError(f"Unsupported ads normalization capability: {capability}")
     try:
         fn = NORMALIZERS[provider]
     except KeyError as exc:

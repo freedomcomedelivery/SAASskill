@@ -103,6 +103,27 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--currency")
     s.add_argument("--duration")
     s.add_argument("--rollback")
+    s.add_argument("--plan-id")
+
+    s = sub.add_parser("ads-prepare", help="Create an exact advertising execution plan")
+    s.add_argument("project_id")
+    s.add_argument("--provider", required=True)
+    s.add_argument("--operation", required=True)
+    s.add_argument("--target", required=True)
+    s.add_argument("--payload", required=True, help="JSON object")
+    s.add_argument("--max-spend", type=float)
+    s.add_argument("--currency")
+
+    s = sub.add_parser("ads-dispatch", help="Render dry-run or approved provider dispatch")
+    s.add_argument("project_id")
+    s.add_argument("plan_id")
+    s.add_argument("--approval-id")
+    s.add_argument("--apply", action="store_true")
+
+    s = sub.add_parser("ads-complete", help="Store provider execution result")
+    s.add_argument("project_id")
+    s.add_argument("plan_id")
+    s.add_argument("--result", required=True, help="JSON result object")
 
     return p
 
@@ -215,6 +236,47 @@ def main(argv: list[str] | None = None) -> int:
         store.save(state)
         _dump(item)
         return 0
+    if args.command == "ads-prepare":
+        from .executors import ExecutionManager
+        state = store.load(args.project_id)
+        payload = _jsonish(args.payload)
+        if not isinstance(payload, dict):
+            raise SystemExit("--payload must be a JSON object")
+        plan = ExecutionManager().prepare(
+            state,
+            provider=args.provider,
+            operation=args.operation,
+            target=args.target,
+            payload=payload,
+            max_spend=args.max_spend,
+            currency=args.currency,
+            side_effect=True,
+        )
+        store.save(state)
+        _dump(plan)
+        return 0
+    if args.command == "ads-dispatch":
+        from .executors import ExecutionManager
+        state = store.load(args.project_id)
+        dispatch = ExecutionManager().dispatch(
+            state,
+            plan_id=args.plan_id,
+            approval_id=args.approval_id,
+            apply=args.apply,
+        )
+        store.save(state)
+        _dump(dispatch)
+        return 0
+    if args.command == "ads-complete":
+        from .executors import ExecutionManager
+        state = store.load(args.project_id)
+        result = _jsonish(args.result)
+        if not isinstance(result, dict):
+            raise SystemExit("--result must be a JSON object")
+        plan = ExecutionManager().complete(state, plan_id=args.plan_id, result=result)
+        store.save(state)
+        _dump(plan)
+        return 0
     if args.command == "approval":
         state = store.load(args.project_id)
         approvals = state.setdefault("approvals", [])
@@ -230,6 +292,7 @@ def main(argv: list[str] | None = None) -> int:
                 "currency": args.currency,
                 "duration": args.duration,
                 "rollback_or_pause": args.rollback,
+                "plan_id": args.plan_id,
                 "status": "pending",
                 "created_at": utc_now(),
             }

@@ -48,7 +48,7 @@ def build_audit_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         if snap.get("product_url"):
             q.append(_item("research", "product_surface", "Fetch the live product/landing and extract offer, pricing, CTA, target claims and product mechanism.", capability=WEB_BROWSER_PARSE, provider_candidates=["camoufox", "web"]))
         q.extend([
-            _item("metrics", "current_ads", "Read current campaign setup/performance if an ads account is connected.", capability=ADS_CAMPAIGNS_READ),
+            _item("metrics", "current_ads", "Read current campaign setup/performance if an ads account is connected.", capability=ADS_CAMPAIGNS_READ, provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel"))),
             _item("metrics", "current_funnel", "Read the observed analytics funnel if analytics is connected.", capability=ANALYTICS_FUNNEL_READ),
             _item("metrics", "current_leads", "Read current lead/qualification/payment statuses if CRM is connected.", capability=CRM_LEADS_READ),
         ])
@@ -98,12 +98,19 @@ def build_audit_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         if not action:
             return [_item("decision", "select_growth_action", "Select the first executable growth action.", autonomous=False)]
         if action.get("capability") == ADS_CAMPAIGNS_WRITE:
-            return [_item("action", "execute_growth_action", action.get("description", "Execute selected paid growth action."), capability=ADS_CAMPAIGNS_WRITE, side_effect=True, provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel")))]
+            return [_item(
+                "action",
+                "execute_growth_action",
+                "Create an exact ads execution plan for the selected growth action, inspect dry run, bind approval to plan_id, then dispatch.",
+                autonomous=False,
+                side_effect=True,
+                provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel")),
+            )]
         return [_item("action", "execute_growth_action", action.get("description", "Execute selected growth action through an appropriate host tool."), autonomous=False, side_effect=bool(action.get("side_effect")))]
 
     if stage == "audit_iteration":
         q.extend([
-            _item("metrics", "post_change_ads", "Read post-change campaign exposure and spend.", capability=ADS_PERFORMANCE_READ),
+            _item("metrics", "post_change_ads", "Read post-change campaign exposure and spend.", capability=ADS_PERFORMANCE_READ, provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel"))),
             _item("metrics", "post_change_funnel", "Read post-change funnel including qualified leads and payments.", capability=ANALYTICS_FUNNEL_READ),
             _item("analysis", "iteration_diagnosis", "Diagnose the earliest meaningful funnel break and compare to the pre-change baseline."),
         ])

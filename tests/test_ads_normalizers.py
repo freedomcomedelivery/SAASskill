@@ -46,6 +46,21 @@ class AdsNormalizerTests(unittest.TestCase):
         self.assertEqual(result["data"]["totals"]["impressions"], 2000)
         self.assertEqual(result["data"]["totals"]["conversions"], 4)
 
+    def test_campaign_inventory_capability(self):
+        from saasskill.ads import normalize_ads_result
+        result = normalize_ads_result(
+            provider="google_ads",
+            request_id="r_inv",
+            capability="ads.campaigns.read",
+            payload=[{
+                "campaign": {"id": "1", "name": "Search", "status": "ENABLED", "advertising_channel_type": "SEARCH"},
+                "campaign_budget": {"amount_micros": 50000000},
+            }],
+            context={"account_id": "123"},
+        )
+        self.assertEqual(result["capability"], "ads.campaigns.read")
+        self.assertEqual(result["data"]["rows"][0]["budget"], 50)
+
     def test_apple_report(self):
         result = normalize_apple_ads_result(
             request_id="r4",

@@ -183,9 +183,10 @@ class HostExecutor:
             )
 
         if pending.get("side_effect"):
-            approved = [a for a in state.get("approvals", []) if a.get("status") == "approved"]
-            if not approved:
-                raise PermissionError("Side-effect result rejected: no approved approval exists")
+            raise PermissionError(
+                "Side-effect ToolResult is not accepted through HostExecutor; use execution_plans "
+                "(prepare → dry-run → exact plan-bound approval → dispatch → complete)."
+            )
 
         provider = expected_provider
         capability = expected_capability

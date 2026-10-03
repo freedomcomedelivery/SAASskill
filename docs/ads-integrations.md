@@ -25,3 +25,17 @@ Writes are two-step:
 6. `ads_complete_execution` stores the provider result.
 
 This keeps credentials in provider transports and spend authority in SAASskill.
+
+
+## Credential-free read request builder
+
+`ads_build_read_request` builds provider-specific call specs before credentials
+exist. It currently emits:
+- Google Ads MCP `search` + GAQL for campaign inventory/performance;
+- Meta Business SDK operation specs;
+- Yandex Direct v5/v501 service/report specs;
+- Apple Ads Platform API v1 endpoints;
+- generic Pipeboard/host connector envelopes.
+
+This is intentional: unit tests can validate request shape now, while credentialed
+integration tests are postponed until OAuth/API keys are connected.

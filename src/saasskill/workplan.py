@@ -127,7 +127,14 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
             channel = (state.get("channel_plan") or {}).get("channel")
             ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
             if channel in ad_channels:
-                q.append(_item("action", "execute_launch", "Prepare/dispatch only the approved advertising action and read back the result.", capability=ADS_CAMPAIGNS_WRITE, side_effect=True, provider_candidates=CHANNEL_AD_PROVIDERS.get(channel)))
+                q.append(_item(
+                    "action",
+                    "execute_launch",
+                    "Create an exact ads execution plan, inspect its dry run, bind approval to plan_id, then dispatch through the selected provider.",
+                    autonomous=False,
+                    side_effect=True,
+                    provider_candidates=CHANNEL_AD_PROVIDERS.get(channel),
+                ))
             else:
                 q.append(_item("action", "execute_launch", "Execute only the approved channel action through a host tool that supports this channel.", autonomous=False, side_effect=True))
         return q
