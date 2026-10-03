@@ -54,3 +54,24 @@ Implemented direct reads:
 
 This executor intentionally performs no writes. Writes remain a separate
 plan-bound approval flow.
+
+
+## Credential-free campaign drafts
+
+Before any provider key/account is connected, build a provider-neutral campaign
+draft from the project's `channel_plan`. The draft validates:
+- geo;
+- conversion event;
+- max spend/currency;
+- landing URL where applicable;
+- keywords for search/ASA;
+- creatives + audience for interruptive display/social;
+- explicit stop conditions.
+
+`ads_prepare_campaign_from_project` renders the validated draft into a
+provider-intent and persists it as an immutable `ExecutionManager` plan. The intent
+is not represented as a raw provider API request until account-level rendering has
+been integration-tested.
+
+This lets approval review the exact commercial intent and spend cap before secrets
+or live mutation code are involved.
