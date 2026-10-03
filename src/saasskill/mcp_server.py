@@ -12,7 +12,10 @@ from .ahrefs import normalize_ahrefs_result
 from .ads import normalize_ads_result
 from .ad_requests import build_ads_read_request
 from .direct_ads_transport import execute_ads_read_request
+from .direct_provider_transport import execute_direct_read
+from .ads_write_transport import execute_ads_write_dispatch
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
+from .camofox_rest import fetch_surface as fetch_camofox_rest_surface
 from .parser_normalizer import normalize_public_page_result
 from .executors import ExecutionManager, execution_plan_digest
 from .integration_status import integration_matrix, integration_status
@@ -161,6 +164,41 @@ def ads_execute_read_request(
 ) -> dict[str, Any]:
     """Execute a concrete ads read request directly; defaults to dry-run and never performs writes."""
     return execute_ads_read_request(spec, dry_run=dry_run, timeout=timeout)
+
+
+@mcp.tool()
+def provider_execute_direct_read(
+    provider: str,
+    spec: dict[str, Any],
+    dry_run: bool = True,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Execute a whitelisted direct read for Ahrefs/Semrush/analytics/CRM/payments; defaults to dry-run."""
+    return execute_direct_read(provider, spec, dry_run=dry_run, timeout=timeout)
+
+
+@mcp.tool()
+def parser_fetch_public_rest(
+    url: str,
+    timeout: float = 30.0,
+    allowed_domains: list[str] | None = None,
+) -> dict[str, Any]:
+    """Fetch and parse a public page through a separately running camofox-browser REST server."""
+    return fetch_camofox_rest_surface(
+        url,
+        timeout=timeout,
+        allowed_domains=set(allowed_domains or []) or None,
+    )
+
+
+@mcp.tool()
+def ads_execute_write_dispatch(
+    dispatch: dict[str, Any],
+    dry_run: bool = True,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Execute a previously approved ads dispatch; defaults to dry-run."""
+    return execute_ads_write_dispatch(dispatch, dry_run=dry_run, timeout=timeout)
 
 
 @mcp.tool()
