@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Idea",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "one_liner": {
+      "type": "string"
+    },
+    "primary_pain": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "market_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "avg_competitor_check": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "usage_frequency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "feasible_as_pet_project": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "personal_fit": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "concerns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision": {
+      "enum": [
+        "backlog",
+        "shortlist",
+        "selected",
+        "rejected"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "one_liner"
+  ],
+  "additionalProperties": true
+}

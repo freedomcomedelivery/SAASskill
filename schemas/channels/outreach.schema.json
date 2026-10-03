@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "OutreachChannelPlan",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "base_source": {
+      "type": "string"
+    },
+    "contact_count": {
+      "type": "integer"
+    },
+    "subject_hooks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "message": {
+      "type": "string"
+    },
+    "offer_cta": {
+      "type": "string"
+    },
+    "landing": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "qualification_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "compliance_check": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "geo",
+    "base_source",
+    "contact_count",
+    "message",
+    "offer_cta"
+  ]
+}

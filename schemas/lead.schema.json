@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LeadRecord",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "source_channel": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "avatar_match": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "qualification": {
+      "type": "object"
+    },
+    "pain": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "urgency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "objections": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "offer_made": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "payment_asked": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "payment_status": {
+      "enum": [
+        "unknown",
+        "not_asked",
+        "declined",
+        "prepaid",
+        "paid"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "id"
+  ],
+  "additionalProperties": true
+}

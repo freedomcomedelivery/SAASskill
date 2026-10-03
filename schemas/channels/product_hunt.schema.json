@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "ProductHuntPlan",
+  "properties": {
+    "tagline": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "visuals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "launch_date": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "hunter": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "utm_link": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "audience_fit": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "goal": {
+      "enum": [
+        "backlink_discovery",
+        "target_audience_acquisition",
+        "mixed"
+      ]
+    }
+  },
+  "required": [
+    "tagline",
+    "goal"
+  ]
+}

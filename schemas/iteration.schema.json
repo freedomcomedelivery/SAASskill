@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Iteration",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "hypothesis": {
+      "type": "string"
+    },
+    "implementation": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "object"
+    },
+    "actual": {
+      "type": "object"
+    },
+    "conclusion": {
+      "enum": [
+        "continue",
+        "iterate",
+        "pause",
+        "channel_change_candidate",
+        "idea_change_candidate"
+      ]
+    },
+    "diagnosis": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "next_change": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "hypothesis"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "MarketplaceChannelPlan",
+  "properties": {
+    "marketplace": {
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "inbound",
+        "outbound"
+      ]
+    },
+    "geo": {
+      "type": "string"
+    },
+    "reference_cards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "title_hook": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "offer_cta": {
+      "type": "string"
+    },
+    "price": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "visuals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "internal_promotion": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "marketplace",
+    "mode",
+    "geo"
+  ]
+}

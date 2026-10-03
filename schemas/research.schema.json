@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResearchPack",
+  "type": "object",
+  "properties": {
+    "idea_id": {
+      "type": "string"
+    },
+    "competitors": {
+      "type": "array",
+      "items": {
+        "$ref": "competitor.schema.json"
+      }
+    },
+    "avatar_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pain_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "market_norms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "traffic_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_coverage": {
+      "type": "object"
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "idea_id"
+  ],
+  "additionalProperties": true
+}

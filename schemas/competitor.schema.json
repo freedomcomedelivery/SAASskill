@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CompetitorRecord",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "geo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "avatar": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pain": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mechanism": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pricing": {
+      "type": "object"
+    },
+    "reviews_summary": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "traffic_channels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ad_traces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "revenue": {
+      "type": "object"
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "additionalProperties": true
+}

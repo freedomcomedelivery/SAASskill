@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "AvitoChannelPlan",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "listing_hook": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "offer_cta": {
+      "type": "string"
+    },
+    "sales_flow": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "qualification_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "price": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "promotion_plan": {
+      "type": "object"
+    },
+    "authenticity_checks": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "geo",
+    "listing_hook",
+    "description",
+    "offer_cta"
+  ]
+}

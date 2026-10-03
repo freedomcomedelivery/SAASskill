@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ChannelPlan",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "enum": [
+        "search",
+        "meta",
+        "telegram",
+        "google_display",
+        "rsya",
+        "marketplace",
+        "outreach",
+        "product_hunt",
+        "content",
+        "avito",
+        "app_store_asa"
+      ]
+    },
+    "geo": {
+      "type": "string"
+    },
+    "landing_or_card": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "budget": {
+      "type": "object"
+    },
+    "conversion_event": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "inputs": {
+      "type": "object"
+    },
+    "current_platform_check": {
+      "type": "object"
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gate_status": {
+      "enum": [
+        "unknown",
+        "pass",
+        "needs_evidence",
+        "blocked"
+      ]
+    }
+  },
+  "required": [
+    "channel",
+    "geo"
+  ],
+  "additionalProperties": true
+}

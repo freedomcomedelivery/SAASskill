@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Market",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "definition": {
+      "type": "string"
+    },
+    "geo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "key_avatars": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "players": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "green_signals": {
+      "type": "object"
+    },
+    "red_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gate_status": {
+      "enum": [
+        "unknown",
+        "pass",
+        "needs_evidence",
+        "fail"
+      ]
+    }
+  },
+  "required": [
+    "name",
+    "definition"
+  ],
+  "additionalProperties": true
+}

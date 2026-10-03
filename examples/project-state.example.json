@@ -1,0 +1,76 @@
+{
+  "project_id": "demo-ai-video-cutter",
+  "name": "AI podcast-to-shorts",
+  "stage": "research_marketing",
+  "personal_concept": {
+    "skills": [
+      "backend",
+      "ML"
+    ],
+    "money_budget": 500,
+    "money_currency": "USD",
+    "nearest_goal": "first paying users"
+  },
+  "markets": [
+    {
+      "name": "AI short-form video repurposing",
+      "gate_status": "pass",
+      "evidence_ids": [
+        "e1",
+        "e2"
+      ]
+    }
+  ],
+  "ideas": [
+    {
+      "id": "idea-1",
+      "one_liner": "Convert long creator videos into publish-ready Shorts",
+      "primary_pain": "manual clipping/editing is slow",
+      "references": [
+        "ref-a",
+        "ref-b",
+        "ref-c"
+      ],
+      "decision": "selected"
+    }
+  ],
+  "selected_idea_id": "idea-1",
+  "marketing_contract": {
+    "geo": "US",
+    "avatar": "small podcast/video creator",
+    "situation": "publishes long video and needs recurring short clips",
+    "pain": "manual clipping/editing consumes production time",
+    "solution_steps": [
+      "upload/link long video",
+      "detect candidate moments",
+      "generate vertical cuts",
+      "review/edit captions",
+      "export/publish"
+    ],
+    "product_type": "simulated_product",
+    "exclusions": [
+      "non-creators",
+      "one-off casual users"
+    ],
+    "primary_benefit": "produce more usable Shorts with less editing time",
+    "gate_status": "pass"
+  },
+  "evidence": [
+    {
+      "id": "e1",
+      "kind": "fact",
+      "claim": "Multiple live competing products found",
+      "confidence": 0.9
+    },
+    {
+      "id": "e2",
+      "kind": "hypothesis",
+      "claim": "Small creators will pay for recurring time savings",
+      "confidence": 0.5
+    }
+  ],
+  "blockers": [
+    "Need current acquisition-channel economics"
+  ],
+  "next_action": "Compare Search vs Meta economics for one US avatar."
+}

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LandingBrief",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string"
+    },
+    "avatar": {
+      "type": "string"
+    },
+    "primary_cta": {
+      "type": "string"
+    },
+    "first_screen": {
+      "type": "object"
+    },
+    "pain_block": {
+      "type": "object"
+    },
+    "benefit_product_block": {
+      "type": "object"
+    },
+    "offer_block": {
+      "type": "object"
+    },
+    "visual_proof": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "qualification_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "analytics_events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "technical_checks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "channel",
+    "avatar",
+    "primary_cta"
+  ],
+  "additionalProperties": true
+}

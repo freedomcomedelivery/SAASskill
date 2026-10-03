@@ -1,0 +1,35 @@
+{
+  "name": "pet-project-launch-operator",
+  "version": "1.0.0",
+  "language": "ru",
+  "entrypoint": "SKILL.md",
+  "source_methodology": "Практикум по пет-проектам, May 2026 materials supplied by user",
+  "artifacts": [
+    "project_state",
+    "evidence",
+    "market",
+    "idea",
+    "research_pack",
+    "marketing_contract",
+    "landing_brief",
+    "economics",
+    "channel_plan",
+    "approval_request",
+    "lead_record",
+    "funnel_snapshot",
+    "iteration"
+  ],
+  "channels": [
+    "search",
+    "meta",
+    "telegram",
+    "google_display",
+    "rsya",
+    "marketplace",
+    "outreach",
+    "product_hunt",
+    "content",
+    "avito",
+    "app_store_asa"
+  ]
+}

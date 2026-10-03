@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "MetaChannelPlan",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "landing": {
+      "type": "string"
+    },
+    "daily_budget": {
+      "type": "number"
+    },
+    "conversion_event": {
+      "type": "string"
+    },
+    "creative_hypotheses": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "ads_per_hypothesis": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "tracking": {
+      "type": "object"
+    },
+    "competitor_ads_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "geo",
+    "landing",
+    "creative_hypotheses"
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MarketingContract",
+  "type": "object",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "primary_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "avatar": {
+      "type": "string"
+    },
+    "situation": {
+      "type": "string"
+    },
+    "pain": {
+      "type": "string"
+    },
+    "solution_steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "product_type": {
+      "enum": [
+        "manual_service",
+        "simulated_product",
+        "working_product_required"
+      ]
+    },
+    "competitive_advantage": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "price": {
+      "type": "object"
+    },
+    "primary_benefit": {
+      "type": "string"
+    },
+    "secondary_benefits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "benefit_vs_price": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "competitor_channels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gate_status": {
+      "enum": [
+        "unknown",
+        "pass",
+        "needs_evidence",
+        "needs_simplification"
+      ]
+    }
+  },
+  "required": [
+    "geo",
+    "avatar",
+    "situation",
+    "pain",
+    "solution_steps",
+    "product_type",
+    "primary_benefit"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "ContentChannelPlan",
+  "properties": {
+    "platform": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string"
+    },
+    "reference_formats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "content_hypotheses": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "cta": {
+      "type": "string"
+    },
+    "landing": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "downstream_metrics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "platform",
+    "format",
+    "content_hypotheses",
+    "cta"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "TelegramChannelPlan",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "creative": {
+      "type": "object"
+    },
+    "landing": {
+      "type": "string"
+    },
+    "purchase_budget": {
+      "type": "number"
+    },
+    "expected_funnel": {
+      "type": "object"
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "subscribers": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "reach_24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "err_24h": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "author_led": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "ad_response": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "take": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "geo",
+    "channels"
+  ]
+}

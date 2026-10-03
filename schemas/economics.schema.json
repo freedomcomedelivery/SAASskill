@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExperimentEconomics",
+  "type": "object",
+  "properties": {
+    "ltv_estimate": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "target_cac": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cpc_forecast": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "cpm_forecast": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "expected_funnel": {
+      "type": "object"
+    },
+    "required_budget": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "max_budget": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "viability": {
+      "enum": [
+        "unknown",
+        "pass",
+        "risk",
+        "blocked"
+      ]
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [],
+  "additionalProperties": true
+}

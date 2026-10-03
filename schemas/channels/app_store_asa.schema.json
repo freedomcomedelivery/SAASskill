@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "AppStoreASAPlan",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "store_page": {
+      "type": "string"
+    },
+    "daily_budget": {
+      "type": "number"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "conversion_goal": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "current_platform_check": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "geo",
+    "store_page",
+    "keywords"
+  ]
+}

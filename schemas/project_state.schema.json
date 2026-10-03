@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectState",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stage": {
+      "enum": [
+        "intake",
+        "personal_concept",
+        "market_discovery",
+        "idea_generation",
+        "idea_selection",
+        "research_marketing",
+        "offer_landing",
+        "gtm_planning",
+        "launch",
+        "lead_onboarding",
+        "iteration_tracking",
+        "scale_or_pivot"
+      ]
+    },
+    "personal_concept": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "markets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "ideas": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "selected_idea_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "research": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "marketing_contract": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "landing_brief": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "economics": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "channel_plan": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "leads": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "funnel_snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "iterations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_action": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "updated_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "project_id",
+    "stage"
+  ],
+  "additionalProperties": true
+}

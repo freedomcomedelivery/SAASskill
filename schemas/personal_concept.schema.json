@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PersonalConcept",
+  "type": "object",
+  "properties": {
+    "experience": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "interesting_domains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hard_no": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "money_budget": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "money_currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "time_budget_hours_week": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "nearest_goal": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reference_products": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hobbies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "problems_to_change": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "founders_followed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_attitude": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "additionalProperties": true
+}

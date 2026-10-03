@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": true,
+  "title": "SearchChannelPlan",
+  "properties": {
+    "geo": {
+      "type": "string"
+    },
+    "platform": {
+      "enum": [
+        "google",
+        "yandex"
+      ]
+    },
+    "landing": {
+      "type": "string"
+    },
+    "daily_budget": {
+      "type": "number"
+    },
+    "conversion_event": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "volume": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "cpc_forecast": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "competition": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hot_intent": {
+            "type": "boolean"
+          },
+          "launch": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "negative_keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ads": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "geo",
+    "platform",
+    "landing",
+    "keywords"
+  ]
+}

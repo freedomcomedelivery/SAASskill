@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FunnelSnapshot",
+  "type": "object",
+  "properties": {
+    "period_start": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "period_end": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reach": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "clicks": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "leads": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "qualified_leads": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "payments": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "spend": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "revenue": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "derived": {
+      "type": "object"
+    },
+    "source_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [],
+  "additionalProperties": true
+}
