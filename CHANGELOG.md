@@ -1,6 +1,13 @@
 # Changelog
 
 ## 1.5
+- Direct read transports for Ahrefs, Semrush, GA4, PostHog, Yandex Metrica, HubSpot and Stripe.
+- Direct advertising reads for Google Ads, Meta Ads, Yandex Direct and Apple Ads.
+- Narrow approval-bound live ad writes: Google/Meta campaign status and Yandex suspend/resume.
+- Credential-free advertising campaign drafts and immutable provider intents.
+- One-call pending-request executors: execute → normalize → ingest → recompute gate.
+- Optional jo-inc/camofox-browser REST backend with real ARIA snapshot parsing and deterministic ref extraction.
+- Pre-key integration checklist and expanded OSS/first-party reuse decisions.
 - Semrush MCP/API/CSV normalizer.
 - Google Ads, Meta Ads, Yandex Direct and Apple Ads performance normalizers.
 - Concrete ad-provider routing by GTM channel.
