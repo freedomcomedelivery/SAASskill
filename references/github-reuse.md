@@ -19,3 +19,9 @@ Reviewed for v1.5 architecture:
 Rule: repository popularity or an MCP badge is not a security audit. Prefer
 first-party APIs/SDKs; pin third-party dependencies and keep all write paths behind
 SAASskill approval plans.
+
+
+| Analytics / product funnel | PostHog hosted MCP (source now in `PostHog/posthog/services/mcp`) | **Official integration target**; old `PostHog/mcp` repo is archived |
+| CRM | `HubSpot/mcp-server` / official HubSpot remote MCP | **Official integration target** |
+| Payments | `stripe/ai` + `stripe/stripe-python` | **Official integration target**; hosted MCP + official Python SDK |
+| GA4 | Google Analytics Data API | Prefer official API/client over random community MCPs |

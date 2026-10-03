@@ -39,6 +39,31 @@ INTEGRATIONS = {
         "direct_env_any": [["APPLE_ADS_ACCESS_TOKEN"]],
         "oauth_material_env": ["APPLE_ADS_CLIENT_ID", "APPLE_ADS_TEAM_ID", "APPLE_ADS_KEY_ID", "APPLE_ADS_PRIVATE_KEY_PATH"],
     },
+    "posthog": {
+        "preferred": "official_remote_mcp",
+        "endpoint": "https://mcp.posthog.com/mcp",
+        "direct_env_any": [["POSTHOG_API_KEY", "POSTHOG_PROJECT_ID"]],
+    },
+    "ga4": {
+        "preferred": "official_google_analytics_data_api",
+        "package_optional": "google.analytics.data",
+        "direct_env_any": [["GOOGLE_APPLICATION_CREDENTIALS", "GA4_PROPERTY_ID"]],
+    },
+    "yandex_metrica": {
+        "preferred": "yandex-direct-metrica-mcp-or-official-api",
+        "direct_env_any": [["YANDEX_ACCESS_TOKEN", "YANDEX_METRICA_COUNTER_ID"]],
+    },
+    "hubspot": {
+        "preferred": "official_remote_mcp",
+        "endpoint": "https://mcp.hubspot.com",
+        "direct_env_any": [["HUBSPOT_ACCESS_TOKEN"]],
+    },
+    "stripe": {
+        "preferred": "official_remote_mcp_or_stripe_python",
+        "endpoint": "https://mcp.stripe.com",
+        "package_optional": "stripe",
+        "direct_env_any": [["STRIPE_API_KEY"]],
+    },
     "camoufox": {
         "preferred": "local_optional_dependency",
         "package": "camoufox",

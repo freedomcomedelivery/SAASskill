@@ -46,8 +46,14 @@
       "apple_ads",
       "pipeboard",
       "ads",
+      "posthog",
+      "ga4",
+      "yandex_metrica",
       "analytics",
-      "crm"
+      "hubspot",
+      "crm",
+      "stripe",
+      "payments"
     ]
   },
   "source_methodology": "Практикум по пет-проектам, May 2026 materials supplied by user",
@@ -69,7 +75,8 @@
     "audit_report",
     "growth_plan",
     "commercial_readiness",
-    "execution_plan"
+    "execution_plan",
+    "verified_payments"
   ],
   "channels": [
     "search",

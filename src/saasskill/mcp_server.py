@@ -4,7 +4,7 @@ import os
 import uuid
 from typing import Any
 
-from mcp.server import MCPServer
+from mcp.server.mcpserver import MCPServer
 
 from .audit import build_growth_plan, growth_priorities, mark_audit_section, refresh_audit_report, update_growth_action
 from .autopilot import ProjectRunner
@@ -16,6 +16,9 @@ from .camoufox_parser import extract_html_snapshot, fetch_public_page
 from .parser_normalizer import normalize_public_page_result
 from .executors import ExecutionManager, execution_plan_digest
 from .integration_status import integration_matrix, integration_status
+from .analytics import normalize_analytics_result
+from .crm import normalize_crm_result
+from .payments import normalize_payments_result
 from .semrush import normalize_semrush_result
 from .host_executor import HostExecutor
 from .orchestrator import Orchestrator
@@ -310,6 +313,69 @@ def project_ingest_ads(
         payload=payload,
         context=_ingest_context(state, pending, context),
         capability=capability,
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_ingest_analytics(
+    project_id: str,
+    request_id: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply analytics funnel data for a pending request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    if provider not in {"posthog", "ga4", "yandex_metrica", "analytics"}:
+        raise ValueError(f"Automatic analytics ingestion is not available for provider {provider}")
+    result = normalize_analytics_result(
+        provider=provider,
+        request_id=request_id,
+        payload=payload,
+        context=_ingest_context(state, pending, context),
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_ingest_crm(
+    project_id: str,
+    request_id: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply CRM lead/deal data for a pending request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    if provider not in {"hubspot", "crm"}:
+        raise ValueError(f"Automatic CRM ingestion is not available for provider {provider}")
+    result = normalize_crm_result(
+        provider=provider,
+        request_id=request_id,
+        payload=payload,
+        context=_ingest_context(state, pending, context),
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_ingest_payments(
+    project_id: str,
+    request_id: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply verified payment records for a pending request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    if provider not in {"stripe", "payments"}:
+        raise ValueError(f"Automatic payments ingestion is not available for provider {provider}")
+    result = normalize_payments_result(
+        provider=provider,
+        request_id=request_id,
+        payload=payload,
+        context=_ingest_context(state, pending, context),
     )
     return HostExecutor(store).apply_result(project_id, result)
 

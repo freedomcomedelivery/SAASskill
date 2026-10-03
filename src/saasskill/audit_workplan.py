@@ -8,6 +8,7 @@ from .capabilities import (
     ADS_PERFORMANCE_READ,
     ANALYTICS_FUNNEL_READ,
     CRM_LEADS_READ,
+    PAYMENTS_TRANSACTIONS_READ,
     SEO_BACKLINKS,
     SEO_COMPETITOR_ADS,
     SEO_COMPETITOR_TRAFFIC,
@@ -50,7 +51,8 @@ def build_audit_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         q.extend([
             _item("metrics", "current_ads", "Read current campaign setup/performance if an ads account is connected.", capability=ADS_CAMPAIGNS_READ, provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel"))),
             _item("metrics", "current_funnel", "Read the observed analytics funnel if analytics is connected.", capability=ANALYTICS_FUNNEL_READ),
-            _item("metrics", "current_leads", "Read current lead/qualification/payment statuses if CRM is connected.", capability=CRM_LEADS_READ),
+            _item("metrics", "current_leads", "Read current lead/qualification statuses if CRM is connected.", capability=CRM_LEADS_READ),
+            _item("metrics", "verified_payments", "Read verified payment transactions separately from ad/CRM conversion labels.", capability=PAYMENTS_TRANSACTIONS_READ),
         ])
         return q
 
@@ -78,7 +80,8 @@ def build_audit_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
     if stage == "audit_funnel_sales":
         q.extend([
             _item("metrics", "analytics_funnel", "Recover factual reach/visit → lead → qualified → payment funnel.", capability=ANALYTICS_FUNNEL_READ),
-            _item("metrics", "crm_sales", "Recover qualification, need discovery, value/demo and close/payment outcomes.", capability=CRM_LEADS_READ),
+            _item("metrics", "crm_sales", "Recover qualification, need discovery, value/demo and close outcomes.", capability=CRM_LEADS_READ),
+            _item("metrics", "verified_payments", "Recover verified successful payments and revenue from the payment processor.", capability=PAYMENTS_TRANSACTIONS_READ),
         ])
         return q
 

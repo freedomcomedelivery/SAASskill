@@ -210,7 +210,10 @@ def derive_audit_findings(state: dict[str, Any]) -> list[dict[str, Any]]:
             "Calculate a conservative target CAC and budget cap before paid traffic.",
         ))
 
-    payments = funnel.get("payments")
+    verified = snap.get("verified_payments") or {}
+    payments = verified.get("count")
+    if payments is None:
+        payments = funnel.get("payments")
     if payments is None:
         payments = sum((x.get("payments") or 0) for x in state.get("funnel_snapshots", []))
     if payments == 0 and snap.get("product_status") in {"live", "launched"}:
@@ -240,7 +243,10 @@ def commercial_readiness(state: dict[str, Any], findings: list[dict[str, Any]] |
     ]
     snap = state.get("audit_snapshot") or {}
     funnel = snap.get("funnel") or {}
-    payments = funnel.get("payments")
+    verified = snap.get("verified_payments") or {}
+    payments = verified.get("count")
+    if payments is None:
+        payments = funnel.get("payments")
     if payments is None:
         payments = sum((x.get("payments") or 0) for x in state.get("funnel_snapshots", []))
     economics = state.get("economics") or snap.get("economics") or {}

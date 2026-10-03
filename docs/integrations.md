@@ -50,3 +50,9 @@ in one call.
 
 Tool results may also use `state_merge_patch` for deterministic nested facts such
 as parsed landing surface or observed ad metrics; protected roots remain enforced.
+
+
+## Downstream funnel
+
+See [analytics, CRM and payments](downstream-funnel.md). Payment processor evidence
+is kept distinct from ad conversions and CRM lifecycle labels.
