@@ -115,8 +115,8 @@ def build_ads_read_request(
                 "provider": provider,
                 "api": "Apple Ads Platform API v1",
                 "method": "GET",
-                "endpoint": "https://api.ads.apple.com/v1/adaccounts",
-                "headers": {"X-AP-Context": f"adAccountId={account_id}"},
+                "endpoint": "https://api.ads.apple.com/v1/acls",
+                "headers": {},
             }
         if capability == "ads.campaigns.read":
             return {

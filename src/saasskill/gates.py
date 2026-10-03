@@ -147,12 +147,27 @@ def evaluate_audit_stage(state: dict[str, Any], stage: str) -> GateResult:
         action = next((x for x in actions if x.get("id") == action_id), None)
         if not action:
             return _need(stage, "blocked", ["selected growth action"], "Define the selected executable growth action.")
-        if action.get("side_effect"):
+        if action.get("capability") == "ads.campaigns.write":
+            plans = [p for p in state.get("execution_plans", []) if p.get("related_action_id") == action_id]
+            if not plans:
+                return _need(stage, "blocked", ["execution plan"], "Prepare an exact advertising plan for this growth action.")
+            plan = plans[-1]
+            approvals = [
+                a for a in state.get("approvals", [])
+                if a.get("status") == "approved" and a.get("plan_id") == plan.get("id")
+            ]
+            if not approvals:
+                return _need(stage, "blocked", ["plan-bound approval"], "Review the dry run and approve this exact growth execution plan.")
+            if plan.get("status") == "dispatched":
+                return _need(stage, "needs_evidence", ["provider execution result"], "Store the provider result for the dispatched growth plan.")
+            if plan.get("status") != "executed":
+                return _need(stage, "blocked", ["execution dispatch"], "Dispatch the approved growth execution plan.")
+        elif action.get("side_effect"):
             approvals = [a for a in state.get("approvals", []) if a.get("status") in {"approved", "executed"}]
             if not approvals:
-                return _need(stage, "blocked", ["approved action"], "Request explicit approval before spend/publish/message/write.")
-        if action.get("status") not in {"executed", "running"}:
-            return _need(stage, "needs_evidence", ["execution result"], "Execute the approved/prepared growth action and read back the result.")
+                return _need(stage, "blocked", ["approved action"], "Request explicit approval before publish/message/write.")
+        if action.get("status") not in {"executed", "running", "measured"}:
+            return _need(stage, "needs_evidence", ["execution result"], "Execute the selected growth action and store its result.")
         return _pass(stage, "Growth action executed.", next_action="Collect a homogeneous post-change funnel iteration.")
 
     if stage == "audit_iteration":
@@ -325,16 +340,30 @@ def evaluate_stage(state: dict[str, Any], stage: str | None = None) -> GateResul
         return _pass(stage, "One GTM plan and economics are ready.", next_action="Prepare exact external action and request approval if it can spend/write.")
 
     if stage == "launch":
+        channel = (state.get("channel_plan") or {}).get("channel")
+        ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
+        if channel in ad_channels:
+            plans = [p for p in state.get("execution_plans", []) if p.get("side_effect")]
+            executed = [p for p in plans if p.get("status") == "executed"]
+            if executed:
+                return _pass(stage, "Advertising execution completed and provider result was stored.", next_action="Read back funnel results and begin lead onboarding.")
+            if not plans:
+                return _need(stage, "blocked", ["execution plan"], "Prepare an exact dry-run advertising execution plan before requesting approval.")
+            plan = plans[-1]
+            approvals = [
+                a for a in state.get("approvals", [])
+                if a.get("status") == "approved" and a.get("plan_id") == plan.get("id")
+            ]
+            if not approvals:
+                return _need(stage, "blocked", ["plan-bound approval"], "Review the dry run and approve this exact execution plan.")
+            if plan.get("status") == "dispatched":
+                return _need(stage, "needs_evidence", ["provider execution result"], "Store the advertising provider result before advancing.")
+            return _need(stage, "blocked", ["execution dispatch"], "Dispatch the approved execution plan through the selected ad provider.")
         approvals = state.get("approvals", [])
         executable = [a for a in approvals if a.get("status") in {"approved", "executed"}]
         if not executable:
-            return _need(
-                stage,
-                "blocked",
-                ["approved action"],
-                "Create an exact approval request; do not spend, publish or message without explicit approval.",
-            )
-        return _pass(stage, "At least one launch action is explicitly approved/executed.", next_action="Execute/read back results and begin lead onboarding.")
+            return _need(stage, "blocked", ["approved action"], "Request explicit approval before the non-advertising launch side effect.")
+        return _pass(stage, "Non-advertising launch action is explicitly approved.", next_action="Execute/read back results and begin lead onboarding.")
 
     if stage == "lead_onboarding":
         leads = state.get("leads", [])

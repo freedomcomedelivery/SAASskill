@@ -98,14 +98,33 @@ def build_audit_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         if not action:
             return [_item("decision", "select_growth_action", "Select the first executable growth action.", autonomous=False)]
         if action.get("capability") == ADS_CAMPAIGNS_WRITE:
-            return [_item(
-                "action",
-                "execute_growth_action",
-                "Create an exact ads execution plan for the selected growth action, inspect dry run, bind approval to plan_id, then dispatch.",
-                autonomous=False,
-                side_effect=True,
-                provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel")),
-            )]
+            plans = [p for p in state.get("execution_plans", []) if p.get("related_action_id") == action_id]
+            if not plans:
+                return [_item(
+                    "action", "prepare_growth_execution_plan",
+                    "Prepare an exact advertising execution plan linked to the selected growth action; inspect dry run first.",
+                    autonomous=False, provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel")),
+                )]
+            plan = plans[-1]
+            bound = [
+                a for a in state.get("approvals", [])
+                if a.get("plan_id") == plan.get("id") and a.get("status") == "approved"
+            ]
+            if not bound:
+                return [_item("approval", "approve_growth_execution_plan", f"Approve exact growth execution plan {plan.get('id')}.", autonomous=False)]
+            if plan.get("status") == "prepared":
+                return [_item(
+                    "action", "dispatch_growth_execution_plan",
+                    f"Dispatch approved growth plan {plan.get('id')} through its selected ads provider.",
+                    autonomous=False, side_effect=True, provider_candidates=CHANNEL_AD_PROVIDERS.get(snap.get("primary_channel")),
+                )]
+            if plan.get("status") == "dispatched":
+                return [_item("action", "complete_growth_execution_plan", f"Store provider result for {plan.get('id')}.", autonomous=False)]
+            return []
+        if action.get("side_effect"):
+            approvals = [a for a in state.get("approvals", []) if a.get("status") == "approved"]
+            if not approvals:
+                return [_item("approval", "growth_action_approval", "Request explicit approval for the selected external growth action.", autonomous=False)]
         return [_item("action", "execute_growth_action", action.get("description", "Execute selected growth action through an appropriate host tool."), autonomous=False, side_effect=bool(action.get("side_effect")))]
 
     if stage == "audit_iteration":

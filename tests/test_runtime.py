@@ -109,6 +109,7 @@ class RuntimeTests(unittest.TestCase):
         state["approvals"] = [{"id": "a1", "status": "approved"}]
         queue = build_work_queue(state)
         self.assertEqual(queue[0]["kind"], "action")
+        self.assertEqual(queue[0]["key"], "prepare_execution_plan")
 
 
 if __name__ == "__main__":

@@ -120,24 +120,44 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         return q
 
     if stage == "launch":
-        approved = [a for a in state.get("approvals", []) if a.get("status") == "approved"]
-        if not approved:
-            q.append(_item("approval", "launch_approval", "Request approval with exact target, max spend, duration, assets and pause condition.", autonomous=False))
-        else:
-            channel = (state.get("channel_plan") or {}).get("channel")
-            ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
-            if channel in ad_channels:
-                q.append(_item(
-                    "action",
-                    "execute_launch",
-                    "Create an exact ads execution plan, inspect its dry run, bind approval to plan_id, then dispatch through the selected provider.",
+        channel = (state.get("channel_plan") or {}).get("channel")
+        ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
+        if channel in ad_channels:
+            plans = [p for p in state.get("execution_plans", []) if p.get("side_effect")]
+            if not plans:
+                return [_item(
+                    "action", "prepare_execution_plan",
+                    "Prepare an exact advertising execution plan for this channel; inspect the dry-run before asking for approval.",
+                    autonomous=False, side_effect=False, provider_candidates=CHANNEL_AD_PROVIDERS.get(channel),
+                )]
+            plan = plans[-1]
+            bound = [
+                a for a in state.get("approvals", [])
+                if a.get("plan_id") == plan.get("id") and a.get("status") == "approved"
+            ]
+            if not bound:
+                return [_item(
+                    "approval", "approve_execution_plan",
+                    f"Approve exact execution plan {plan.get('id')} after reviewing target, payload and spend cap.",
                     autonomous=False,
-                    side_effect=True,
-                    provider_candidates=CHANNEL_AD_PROVIDERS.get(channel),
-                ))
-            else:
-                q.append(_item("action", "execute_launch", "Execute only the approved channel action through a host tool that supports this channel.", autonomous=False, side_effect=True))
-        return q
+                )]
+            if plan.get("status") == "prepared":
+                return [_item(
+                    "action", "dispatch_execution_plan",
+                    f"Dispatch approved execution plan {plan.get('id')} through its selected provider.",
+                    autonomous=False, side_effect=True, provider_candidates=CHANNEL_AD_PROVIDERS.get(channel),
+                )]
+            if plan.get("status") == "dispatched":
+                return [_item(
+                    "action", "complete_execution_plan",
+                    f"Read provider response for {plan.get('id')} and store it with ads_complete_execution.",
+                    autonomous=False,
+                )]
+            return []
+        approvals = [a for a in state.get("approvals", []) if a.get("status") == "approved"]
+        if not approvals:
+            return [_item("approval", "launch_approval", "Request approval with exact target, assets and rollback/pause condition.", autonomous=False)]
+        return [_item("action", "execute_launch", "Execute only the approved non-advertising channel action and read back the result.", autonomous=False, side_effect=True)]
 
     if stage == "lead_onboarding":
         q.extend([

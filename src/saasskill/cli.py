@@ -113,6 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--payload", required=True, help="JSON object")
     s.add_argument("--max-spend", type=float)
     s.add_argument("--currency")
+    s.add_argument("--related-action-id")
 
     s = sub.add_parser("ads-dispatch", help="Render dry-run or approved provider dispatch")
     s.add_argument("project_id")
@@ -251,6 +252,7 @@ def main(argv: list[str] | None = None) -> int:
             max_spend=args.max_spend,
             currency=args.currency,
             side_effect=True,
+            related_action_id=args.related_action_id,
         )
         store.save(state)
         _dump(plan)

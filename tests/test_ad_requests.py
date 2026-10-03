@@ -27,6 +27,13 @@ class AdsRequestBuilderTests(unittest.TestCase):
         self.assertIn("/v501/reports", req["endpoint"])
         self.assertEqual(req["arguments"]["params"]["ReportType"], "CAMPAIGN_PERFORMANCE_REPORT")
 
+    def test_apple_accounts_use_acl_endpoint(self):
+        req = build_ads_read_request(
+            provider="apple_ads", capability="ads.accounts.read", account_id="ignored",
+        )
+        self.assertEqual(req["endpoint"], "https://api.ads.apple.com/v1/acls")
+        self.assertEqual(req["headers"], {})
+
     def test_apple_uses_platform_v1(self):
         req = build_ads_read_request(
             provider="apple_ads", capability="ads.performance.read",

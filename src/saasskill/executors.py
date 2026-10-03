@@ -32,6 +32,7 @@ class ExecutionManager:
         max_spend: float | None = None,
         currency: str | None = None,
         side_effect: bool = True,
+        related_action_id: str | None = None,
     ) -> dict[str, Any]:
         if provider not in SUPPORTED_AD_PROVIDERS:
             raise ValueError(f"Unsupported ad provider: {provider}")
@@ -45,6 +46,7 @@ class ExecutionManager:
             "max_spend": max_spend,
             "currency": currency,
             "side_effect": side_effect,
+            "related_action_id": related_action_id,
             "status": "prepared",
             "created_at": utc_now(),
         }
@@ -116,6 +118,14 @@ class ExecutionManager:
         plan["status"] = "executed" if status == "ok" else "failed"
         plan["completed_at"] = utc_now()
         plan["result"] = deepcopy(result)
+        related_action_id = plan.get("related_action_id")
+        if related_action_id:
+            actions = (state.get("growth_plan") or {}).get("actions") or []
+            action = next((x for x in actions if x.get("id") == related_action_id), None)
+            if action is not None:
+                action["status"] = "executed" if status == "ok" else "planned"
+                action["updated_at"] = utc_now()
+
         state.setdefault("action_log", []).append({
             "type": "execution_plan_result",
             "plan_id": plan_id,

@@ -162,6 +162,7 @@ def ads_prepare_execution(
     payload: dict[str, Any],
     max_spend: float | None = None,
     currency: str | None = None,
+    related_action_id: str | None = None,
 ) -> dict[str, Any]:
     """Store an exact dry-run-first advertising execution plan."""
     store = _store()
@@ -175,6 +176,7 @@ def ads_prepare_execution(
         max_spend=max_spend,
         currency=currency,
         side_effect=True,
+        related_action_id=related_action_id,
     )
     store.save(state)
     return plan
@@ -322,6 +324,14 @@ def approval_create(project_id: str, action_type: str, target: str, summary: str
     """Create a pending approval for an external side effect."""
     store = _store()
     state = store.load(project_id)
+    if plan_id is not None:
+        plan = next((x for x in state.get("execution_plans", []) if x.get("id") == plan_id), None)
+        if plan is None:
+            raise ValueError(f"Execution plan not found: {plan_id}")
+        if max_spend is None:
+            max_spend = plan.get("max_spend")
+        if currency is None:
+            currency = plan.get("currency")
     item = {
         "id": f"apr_{uuid.uuid4().hex[:10]}",
         "action_type": action_type,

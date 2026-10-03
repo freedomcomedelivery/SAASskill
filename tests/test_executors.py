@@ -43,6 +43,19 @@ class ExecutionManagerTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             manager.dispatch(state, plan_id=plan["id"], approval_id="a1", apply=True)
 
+    def test_complete_updates_related_growth_action(self):
+        state = {
+            "execution_plans": [], "approvals": [],
+            "growth_plan": {"actions": [{"id": "grow_1", "status": "planned"}]},
+        }
+        manager = ExecutionManager()
+        plan = manager.prepare(
+            state, provider="google_ads", operation="campaign.update",
+            target="1", payload={"status": "PAUSED"}, related_action_id="grow_1",
+        )
+        manager.complete(state, plan_id=plan["id"], result={"status": "ok"})
+        self.assertEqual(state["growth_plan"]["actions"][0]["status"], "executed")
+
     def test_exact_approval_dispatches(self):
         state = {"execution_plans": [], "approvals": []}
         manager = ExecutionManager()
