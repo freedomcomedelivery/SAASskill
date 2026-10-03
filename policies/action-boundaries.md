@@ -16,3 +16,9 @@ Approval request states: exact action, target account/channel, max spend, durati
 
 ## Never infer approval
 A user saying “готовь кампанию” is not the same as “запускай и потрать $500”.
+
+## Exact-plan approval
+Advertising writes should use `execution_plans`. An approval for one plan does not
+authorize another plan. Spend caps and currency are validated at dispatch time.
+Generic “approved somewhere in the project” is not sufficient authorization for a
+new execution plan.

@@ -1,8 +1,8 @@
-# Pet Project Launch Operator v1.4
+# Pet Project Launch Operator v1.5
 
 Это не конспект курса. Это repo-ready база для агента, который выполняет продуктовый запуск по методике «Практикума по пет-проектам».
 
-## Что входит в v1.4
+## Что входит в v1.5
 - полная карта всех блоков и уроков транскрипта;
 - state machine и orchestrator loop;
 - отдельные schemas для market/research/landing/economics/lead/approval;
@@ -38,7 +38,7 @@ Specific UI steps и platform rules быстро устаревают. Поэт�
 
 ## Executable runtime
 
-v1.4 добавляет детерминированный Python runtime: project state на диске, gate engine,
+v1.5 добавляет детерминированный Python runtime: project state на диске, gate engine,
 audit trail, explicit approvals, CLI и host work planner.
 
 ```bash
@@ -53,7 +53,7 @@ PYTHONPATH=src python -m saasskill advance my-project
 
 ## Multi-host + providers
 
-v1.4 separates **host** from **data/action provider**. Claude, ChatGPT/OpenAI API or
+v1.5 separates **host** from **data/action provider**. Claude, ChatGPT/OpenAI API or
 another MCP client can drive the same project state.
 
 Research routing:
@@ -97,3 +97,17 @@ secret belongs in this repository. SAASskill includes an Ahrefs normalizer for
 keyword, domain, competitor, backlink and paid-search responses.
 
 See [docs/ahrefs.md](docs/ahrefs.md).
+
+
+## Integration layer v1.5
+
+v1.5 adds:
+- Semrush normalizer;
+- Google Ads / Meta Ads / Yandex Direct / Apple Ads performance normalizers;
+- platform-aware ad routing;
+- dry-run-first, exact-plan-bound execution plans;
+- Camoufox public-page parser;
+- reviewed GitHub reuse candidates.
+
+See [integration layer](docs/integrations.md), [ads](docs/ads-integrations.md),
+[Semrush](docs/semrush.md), and [Camoufox](docs/camoufox-parser.md).

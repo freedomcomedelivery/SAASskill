@@ -43,10 +43,10 @@ required = [
     'evals/cases.jsonl','pyproject.toml','src/saasskill/state.py',
     'src/saasskill/gates.py','src/saasskill/orchestrator.py',
     'src/saasskill/cli.py','src/saasskill/capabilities.py',
-    'src/saasskill/providers.py','src/saasskill/ahrefs.py','src/saasskill/host_executor.py','src/saasskill/audit.py','src/saasskill/audit_workplan.py','src/saasskill/autopilot.py',
+    'src/saasskill/providers.py','src/saasskill/ahrefs.py','src/saasskill/semrush.py','src/saasskill/ads.py','src/saasskill/executors.py','src/saasskill/camoufox_parser.py','src/saasskill/host_executor.py','src/saasskill/audit.py','src/saasskill/audit_workplan.py','src/saasskill/autopilot.py',
     'src/saasskill/mcp_server.py','tests/test_runtime.py',
-    'tests/test_provider_routing.py','tests/test_ahrefs_normalizer.py','tests/test_audit_workflow.py','tests/test_runner.py','docs/mcp.md','docs/provider-routing.md','docs/ahrefs.md','docs/existing-project-audit.md',
-    'CLAUDE.md','AGENTS.md','.mcp.json.example','evals/audit_cases.jsonl','references/audit-source-trace.md',
+    'tests/test_provider_routing.py','tests/test_ahrefs_normalizer.py','tests/test_semrush_normalizer.py','tests/test_ads_normalizers.py','tests/test_executors.py','tests/test_camoufox_parser.py','tests/test_audit_workflow.py','tests/test_runner.py','docs/mcp.md','docs/provider-routing.md','docs/ahrefs.md','docs/semrush.md','docs/ads-integrations.md','docs/camoufox-parser.md','docs/integrations.md','docs/existing-project-audit.md',
+    'CLAUDE.md','AGENTS.md','.mcp.json.example','evals/audit_cases.jsonl','references/audit-source-trace.md','references/github-reuse.md',
 ]
 for req in required:
     if not (ROOT/req).exists():
@@ -54,8 +54,8 @@ for req in required:
 
 try:
     manifest=json.loads((ROOT/'skill-manifest.json').read_text(encoding='utf-8'))
-    if manifest.get('version') != '1.4.0':
-        errors.append(f"skill-manifest version must be 1.4.0, got {manifest.get('version')!r}")
+    if manifest.get('version') != '1.5.0':
+        errors.append(f"skill-manifest version must be 1.5.0, got {manifest.get('version')!r}")
     runtime=manifest.get('runtime') or {}
     if runtime.get('package') != 'saasskill':
         errors.append('skill-manifest.runtime.package must be saasskill')

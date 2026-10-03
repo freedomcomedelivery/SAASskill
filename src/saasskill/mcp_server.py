@@ -9,6 +9,10 @@ from mcp.server import MCPServer
 from .audit import build_growth_plan, growth_priorities, mark_audit_section, refresh_audit_report, update_growth_action
 from .autopilot import ProjectRunner
 from .ahrefs import normalize_ahrefs_result
+from .ads import normalize_ads_result
+from .camoufox_parser import extract_html_snapshot, fetch_public_page
+from .executors import ExecutionManager
+from .semrush import normalize_semrush_result
 from .host_executor import HostExecutor
 from .orchestrator import Orchestrator
 from .providers import ProviderRouter
@@ -85,6 +89,92 @@ def provider_normalize_ahrefs(
         payload=payload,
         context=context,
     )
+
+
+@mcp.tool()
+def provider_normalize_semrush(
+    request_id: str,
+    report_type: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize Semrush MCP/API/CSV data into a SAASskill ToolResult."""
+    return normalize_semrush_result(request_id=request_id, report_type=report_type, payload=payload, context=context)
+
+
+@mcp.tool()
+def provider_normalize_ads(
+    provider: str,
+    request_id: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize Google/Meta/Yandex/Apple advertising performance data."""
+    return normalize_ads_result(provider=provider, request_id=request_id, payload=payload, context=context)
+
+
+@mcp.tool()
+def parser_extract_html(html: str, url: str | None = None) -> dict[str, Any]:
+    """Extract commercial surface data from already-fetched public HTML."""
+    return extract_html_snapshot(html, url=url)
+
+
+@mcp.tool()
+def parser_fetch_public(url: str, timeout_ms: int = 30000, allowed_domains: list[str] | None = None) -> dict[str, Any]:
+    """Fetch a public page with Camoufox; no login/CAPTCHA bypass is attempted."""
+    return fetch_public_page(url, timeout_ms=timeout_ms, allowed_domains=set(allowed_domains or []) or None)
+
+
+@mcp.tool()
+def ads_prepare_execution(
+    project_id: str,
+    provider: str,
+    operation: str,
+    target: str,
+    payload: dict[str, Any],
+    max_spend: float | None = None,
+    currency: str | None = None,
+) -> dict[str, Any]:
+    """Store an exact dry-run-first advertising execution plan."""
+    store = _store()
+    state = store.load(project_id)
+    plan = ExecutionManager().prepare(
+        state,
+        provider=provider,
+        operation=operation,
+        target=target,
+        payload=payload,
+        max_spend=max_spend,
+        currency=currency,
+        side_effect=True,
+    )
+    store.save(state)
+    return plan
+
+
+@mcp.tool()
+def ads_dispatch_execution(
+    project_id: str,
+    plan_id: str,
+    approval_id: str | None = None,
+    apply: bool = False,
+) -> dict[str, Any]:
+    """Render/dispatch a stored execution plan. apply=true requires exact plan-bound approval."""
+    store = _store()
+    state = store.load(project_id)
+    dispatch = ExecutionManager().dispatch(state, plan_id=plan_id, approval_id=approval_id, apply=apply)
+    store.save(state)
+    return dispatch
+
+
+@mcp.tool()
+def ads_complete_execution(project_id: str, plan_id: str, result: dict[str, Any]) -> dict[str, Any]:
+    """Store the provider result after the host executes a dispatched plan."""
+    store = _store()
+    state = store.load(project_id)
+    plan = ExecutionManager().complete(state, plan_id=plan_id, result=result)
+    store.save(state)
+    return plan
 
 
 @mcp.tool()
@@ -200,7 +290,7 @@ def project_set_artifact(project_id: str, field: str, value: Any) -> dict[str, A
 
 
 @mcp.tool()
-def approval_create(project_id: str, action_type: str, target: str, summary: str, max_spend: float | None = None, currency: str | None = None, duration: str | None = None, rollback_or_pause: str | None = None) -> dict[str, Any]:
+def approval_create(project_id: str, action_type: str, target: str, summary: str, max_spend: float | None = None, currency: str | None = None, duration: str | None = None, rollback_or_pause: str | None = None, plan_id: str | None = None) -> dict[str, Any]:
     """Create a pending approval for an external side effect."""
     store = _store()
     state = store.load(project_id)
@@ -213,6 +303,7 @@ def approval_create(project_id: str, action_type: str, target: str, summary: str
         "currency": currency,
         "duration": duration,
         "rollback_or_pause": rollback_or_pause,
+        "plan_id": plan_id,
         "status": "pending",
         "created_at": utc_now(),
     }

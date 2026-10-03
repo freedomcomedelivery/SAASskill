@@ -10,7 +10,9 @@ from .capabilities import (
     SEO_DOMAIN_METRICS,
     SEO_KEYWORD_METRICS,
     WEB_FETCH,
+    WEB_BROWSER_PARSE,
     WEB_SEARCH,
+    CHANNEL_AD_PROVIDERS,
 )
 from .gates import evaluate_stage
 
@@ -23,6 +25,7 @@ def _item(
     autonomous: bool = True,
     capability: str | None = None,
     side_effect: bool = False,
+    provider_candidates: list[str] | None = None,
 ) -> dict[str, Any]:
     return {
         "kind": kind,
@@ -31,6 +34,7 @@ def _item(
         "autonomous": autonomous,
         "capability": capability,
         "side_effect": side_effect,
+        "provider_candidates": provider_candidates,
     }
 
 
@@ -87,7 +91,7 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
 
     if stage == "research_marketing":
         q.extend([
-            _item("research", "competitor_products", "Use/review direct competitors and capture mechanism, price and market norms.", capability=WEB_SEARCH),
+            _item("research", "competitor_products", "Use/review direct competitors and capture mechanism, price and market norms.", capability=WEB_BROWSER_PARSE, provider_candidates=["camoufox", "web"]),
             _item("research", "reviews_users", "Analyze reviews, demos/videos and paying-user context.", capability=WEB_SEARCH),
             _item("research", "traffic_channels", "Inspect competitor traffic/acquisition channels with SEO evidence where available.", capability=SEO_COMPETITOR_TRAFFIC),
             _item("artifact", "marketing_contract", "Build one coherent avatar → situation → pain → solution → primary benefit contract."),
@@ -123,7 +127,7 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
             channel = (state.get("channel_plan") or {}).get("channel")
             ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
             if channel in ad_channels:
-                q.append(_item("action", "execute_launch", "Execute only the approved advertising action and read back the result.", capability=ADS_CAMPAIGNS_WRITE, side_effect=True))
+                q.append(_item("action", "execute_launch", "Prepare/dispatch only the approved advertising action and read back the result.", capability=ADS_CAMPAIGNS_WRITE, side_effect=True, provider_candidates=CHANNEL_AD_PROVIDERS.get(channel)))
             else:
                 q.append(_item("action", "execute_launch", "Execute only the approved channel action through a host tool that supports this channel.", autonomous=False, side_effect=True))
         return q

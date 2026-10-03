@@ -3,11 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
-from .capabilities import (
-    CAPABILITY_FALLBACKS,
-    DEFAULT_PROVIDER_ORDER,
-    PROVIDER_CAPABILITIES,
-)
+from .capabilities import CAPABILITY_FALLBACKS, DEFAULT_PROVIDER_ORDER, PROVIDER_CAPABILITIES
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,19 +40,25 @@ class ProviderRouter:
         self.available = set(available_providers)
         self.preferences = preferences or {}
 
-    def _providers_for(self, capability: str) -> list[str]:
-        return self.preferences.get(capability) or DEFAULT_PROVIDER_ORDER.get(capability, [])
+    def _providers_for(self, capability: str, candidates: list[str] | None = None) -> list[str]:
+        preferred = self.preferences.get(capability) or DEFAULT_PROVIDER_ORDER.get(capability, [])
+        if not candidates:
+            return list(preferred)
+        candidate_set = set(candidates)
+        ordered = [p for p in preferred if p in candidate_set]
+        ordered.extend(p for p in candidates if p not in ordered)
+        return ordered
 
-    def _resolve_exact(self, capability: str) -> str | None:
-        for provider in self._providers_for(capability):
+    def _resolve_exact(self, capability: str, candidates: list[str] | None = None) -> str | None:
+        for provider in self._providers_for(capability, candidates):
             if provider not in self.available:
                 continue
             if capability in PROVIDER_CAPABILITIES.get(provider, set()):
                 return provider
         return None
 
-    def resolve(self, capability: str) -> ProviderRoute:
-        provider = self._resolve_exact(capability)
+    def resolve(self, capability: str, candidates: list[str] | None = None) -> ProviderRoute:
+        provider = self._resolve_exact(capability, candidates)
         if provider:
             return ProviderRoute(
                 requested_capability=capability,
@@ -67,7 +69,7 @@ class ProviderRouter:
             )
 
         for fallback in CAPABILITY_FALLBACKS.get(capability, []):
-            provider = self._resolve_exact(fallback)
+            provider = self._resolve_exact(fallback, candidates)
             if provider:
                 return ProviderRoute(
                     requested_capability=capability,
@@ -77,12 +79,13 @@ class ProviderRouter:
                     reason=f"No exact provider available; degraded fallback to {fallback} via {provider}.",
                 )
 
+        suffix = f" within candidates {candidates}" if candidates else ""
         return ProviderRoute(
             requested_capability=capability,
             effective_capability=capability,
             provider=None,
             degraded=False,
-            reason="No available provider can satisfy this capability.",
+            reason=f"No available provider can satisfy this capability{suffix}.",
         )
 
     def matrix(self) -> dict[str, dict]:

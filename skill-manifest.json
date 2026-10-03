@@ -1,6 +1,6 @@
 {
   "name": "pet-project-launch-operator",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "language": "ru",
   "entrypoint": "SKILL.md",
   "runtime": {
@@ -27,13 +27,24 @@
   "providers": {
     "research": [
       "web",
+      "camoufox",
       "semrush",
       "ahrefs"
     ],
     "actions": [
+      "google_ads",
+      "meta_ads",
+      "yandex_direct",
+      "apple_ads",
+      "pipeboard",
       "ads"
     ],
     "metrics": [
+      "google_ads",
+      "meta_ads",
+      "yandex_direct",
+      "apple_ads",
+      "pipeboard",
       "ads",
       "analytics",
       "crm"
@@ -57,7 +68,8 @@
     "audit_snapshot",
     "audit_report",
     "growth_plan",
-    "commercial_readiness"
+    "commercial_readiness",
+    "execution_plan"
   ],
   "channels": [
     "search",

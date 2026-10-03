@@ -215,6 +215,12 @@
         "sales_validated",
         "ready_to_scale"
       ]
+    },
+    "execution_plans": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     }
   },
   "required": [

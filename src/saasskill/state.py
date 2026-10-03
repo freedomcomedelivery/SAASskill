@@ -81,7 +81,7 @@ def new_project_state(
         "name": name,
         "workflow": workflow,
         "stage": initial_stage,
-        "runtime_version": "1.4.0",
+        "runtime_version": "1.5.0",
         "personal_concept": None,
         "markets": [],
         "ideas": [],
@@ -108,6 +108,7 @@ def new_project_state(
         "action_log": [],
         "pending_tool_requests": [],
         "tool_results": [],
+        "execution_plans": [],
         "audit_snapshot": None,
         "audit_report": None,
         "growth_plan": None,
@@ -167,7 +168,7 @@ class ProjectStore:
             raise ValueError(f"Stage {state.get('stage')!r} does not belong to workflow {workflow!r}")
         state = deepcopy(state)
         state["workflow"] = workflow
-        state["runtime_version"] = "1.4.0"
+        state["runtime_version"] = "1.5.0"
         state["updated_at"] = utc_now()
         target = self.path(project_id)
         target.parent.mkdir(parents=True, exist_ok=True)

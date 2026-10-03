@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExecutionPlan",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "transport": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "max_spend": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "side_effect": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "prepared",
+        "dispatched",
+        "executed",
+        "failed",
+        "cancelled"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "provider",
+    "operation",
+    "target",
+    "payload",
+    "side_effect",
+    "status"
+  ],
+  "additionalProperties": true
+}

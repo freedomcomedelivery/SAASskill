@@ -40,6 +40,7 @@ class ToolRequest:
     requested_capability: str
     effective_capability: str
     provider: str | None
+    provider_candidates: list[str] | None
     degraded: bool
     side_effect: bool
     approval_required: bool
@@ -55,6 +56,7 @@ class ToolRequest:
             "requested_capability": self.requested_capability,
             "effective_capability": self.effective_capability,
             "provider": self.provider,
+            "provider_candidates": self.provider_candidates,
             "degraded": self.degraded,
             "side_effect": self.side_effect,
             "approval_required": self.approval_required,
@@ -89,7 +91,8 @@ class HostExecutor:
                 manual.append(item)
                 continue
 
-            route = router.resolve(capability)
+            candidates = item.get("provider_candidates")
+            route = router.resolve(capability, candidates=candidates)
             req = ToolRequest(
                 request_id=f"req_{uuid.uuid4().hex[:10]}",
                 work_key=item["key"],
@@ -98,6 +101,7 @@ class HostExecutor:
                 requested_capability=route.requested_capability,
                 effective_capability=route.effective_capability,
                 provider=route.provider,
+                provider_candidates=candidates,
                 degraded=route.degraded,
                 side_effect=bool(item.get("side_effect")),
                 approval_required=bool(item.get("side_effect")),

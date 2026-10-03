@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5
+- Semrush MCP/API/CSV normalizer.
+- Google Ads, Meta Ads, Yandex Direct and Apple Ads performance normalizers.
+- Concrete ad-provider routing by GTM channel.
+- Dry-run-first execution plans with exact plan-bound approvals and spend-cap checks.
+- Camoufox public-page parser with SSRF guard, same-origin crawl limits and challenge detection.
+- GitHub reuse review for first-party and community integration candidates.
+- Optional dependency extras for Camoufox and ad SDKs.
+
+
 ## 1.4
 - Separate `existing_project_audit` workflow for already-built products.
 - Audit stages for snapshot, market/positioning, offer/landing, acquisition, funnel/sales, economics, growth plan, execution and iteration.
