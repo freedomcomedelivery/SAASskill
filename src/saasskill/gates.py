@@ -104,8 +104,6 @@ def evaluate_audit_stage(state: dict[str, Any], stage: str) -> GateResult:
         for key in ["geo", "product_status"]:
             if not _present(snap.get(key)):
                 missing.append(key)
-        if not (_present(snap.get("offer")) or _present(snap.get("pricing"))):
-            missing.append("current offer/pricing")
         if missing:
             return _need(stage, "needs_user_input", missing, "Capture the minimum current-state snapshot; research everything public from product assets.")
         return _pass(stage, "Existing product snapshot is usable.", next_action="Audit market, references and positioning.")
@@ -137,8 +135,8 @@ def evaluate_audit_stage(state: dict[str, Any], stage: str) -> GateResult:
 
     if stage == "audit_growth_plan":
         plan = state.get("growth_plan") or {}
-        if not plan.get("priorities"):
-            return _need(stage, "needs_evidence", ["growth_plan.priorities"], "Prioritize blocking errors and highest-leverage growth experiments.")
+        if not plan.get("actions"):
+            return _need(stage, "needs_evidence", ["growth_plan.actions"], "Build repair/growth actions from current findings and commercial readiness.")
         if not state.get("selected_growth_action_id"):
             return _need(stage, "needs_user_input", ["selected_growth_action_id"], "Select the first growth action if more than one equally valid path remains.")
         return _pass(stage, "Growth plan has a selected first action.", next_action="Prepare the selected commercial action and approval if needed.")

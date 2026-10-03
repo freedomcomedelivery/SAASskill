@@ -48,7 +48,7 @@ class ExistingProjectAuditTests(unittest.TestCase):
         }
         codes = {x["code"] for x in derive_audit_findings(state)}
         self.assertIn("all_for_everyone", codes)
-        self.assertIn("wrong_channel", codes)
+        self.assertTrue({"channel_scatter", "wrong_channel_search_demand"} & codes)
         self.assertIn("funnel_of_fate", codes)
         self.assertIn("no_decomposition_debugging", codes)
         self.assertIn("sales_process_gap", codes)

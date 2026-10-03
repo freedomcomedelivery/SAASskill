@@ -324,9 +324,13 @@ def growth_priorities(state: dict[str, Any]) -> list[dict[str, Any]]:
 def build_growth_plan(state: dict[str, Any]) -> dict[str, Any]:
     report = refresh_audit_report(state)
     priorities = growth_priorities(state)
+    actionable_priorities = [
+        p for p in priorities
+        if not (report["commercial_readiness"] == "ready_for_controlled_sales" and p.get("problem") == "Live product has no recorded payment signal")
+    ]
     actions: list[dict[str, Any]] = []
 
-    for p in priorities:
+    for p in actionable_priorities:
         actions.append({
             "id": f"action_{_slug(p['finding_fingerprint'])}",
             "finding_id": p["finding_id"],
