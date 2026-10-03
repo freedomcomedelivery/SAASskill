@@ -17,7 +17,7 @@ class RuntimeTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_init_and_intake_advance(self):
+    def test_auto_project_id_slug(self):\n        state = self.store.create("Podcast Shorts")\n        self.assertTrue(state["project_id"].startswith("podcast-shorts-"))\n\n    def test_init_and_intake_advance(self):
         state = self.store.create("Podcast Shorts", "podcast-shorts")
         self.assertEqual(state["stage"], "intake")
         self.assertTrue(evaluate_stage(state).passed)
