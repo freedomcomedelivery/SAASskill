@@ -25,3 +25,29 @@ SAASskill approval plans.
 | CRM | `HubSpot/mcp-server` / official HubSpot remote MCP | **Official integration target** |
 | Payments | `stripe/ai` + `stripe/stripe-python` | **Official integration target**; hosted MCP + official Python SDK |
 | GA4 | Google Analytics Data API | Prefer official API/client over random community MCPs |
+
+
+## Browser backend decision
+
+Two usable Camoufox agent servers were reviewed:
+- `jo-inc/camofox-browser`: REST server + standalone MCP adapter, accessibility
+  snapshots, stable refs, sessions, screenshots and structured extract.
+- `redf0x1/camofox-mcp`: another MCP-oriented Camoufox wrapper with a broad
+  automation surface.
+
+SAASskill targets `jo-inc/camofox-browser` for the optional REST backend because
+its persistent REST service lets Claude, ChatGPT and custom workers share the same
+browser backend without coupling SAASskill to one host's MCP process lifecycle.
+The direct `daijro/camoufox` Python integration remains available for simple local
+public parsing.
+
+## Ads decision
+
+Google's first-party `googleads/google-ads-mcp` currently exposes account discovery,
+metadata and GAQL/search reads. Therefore SAASskill reuses it for read paths and uses
+the first-party `googleads/google-ads-python` SDK for custom approved writes.
+
+Meta uses `facebook/facebook-python-business-sdk` for direct reads/writes.
+Yandex Direct uses the official API; `georgy-agaev/yandex-direct-metrica-mcp`
+remains an attractive optional read-only MCP because it combines Direct, Metrica,
+Wordstat and safe two-phase write patterns.
