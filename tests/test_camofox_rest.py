@@ -5,6 +5,18 @@ from saasskill.camofox_rest import fetch_snapshot
 
 
 class CamofoxRestTests(unittest.TestCase):
+    def test_real_camofox_yaml_snapshot_format(self):
+        from saasskill.camofox_rest import accessibility_to_surface
+        surface=accessibility_to_surface({
+            "url":"https://example.com",
+            "title":"Example",
+            "snapshot":'- heading "Hello World"\n- link "Pricing $29" [e1]\n- button "Get started" [e2]\n',
+        })
+        self.assertEqual(surface["headings"][0]["text"],"Hello World")
+        self.assertEqual(surface["links"][0]["ref"],"e1")
+        self.assertIn("Get started",surface["ctas"])
+        self.assertIn("$29",surface["prices"])
+
     def test_public_snapshot_lifecycle(self):
         calls=[]
         def fake(path, method="GET", body=None, timeout=30.0):
