@@ -16,7 +16,7 @@ from .direct_provider_transport import execute_direct_read
 from .provider_requests import build_direct_read_spec
 from .ads_write_transport import execute_ads_write_dispatch
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
-from .camofox_rest import fetch_surface as fetch_camofox_rest_surface
+from .camofox_rest import fetch_surface as fetch_camofox_rest_surface, open_snapshot as open_camofox_snapshot, extract_refs as extract_camofox_refs, close_snapshot as close_camofox_snapshot
 from .parser_normalizer import normalize_public_page_result
 from .executors import ExecutionManager, execution_plan_digest
 from .integration_status import integration_matrix, integration_status
@@ -245,6 +245,41 @@ def parser_fetch_public_rest(
         timeout=timeout,
         allowed_domains=set(allowed_domains or []) or None,
     )
+
+
+@mcp.tool()
+def parser_open_public_rest(
+    url: str,
+    timeout: float = 30.0,
+    allowed_domains: list[str] | None = None,
+) -> dict[str, Any]:
+    """Open a public page and retain a safe tab handle for ref-based extraction."""
+    return open_camofox_snapshot(
+        url,
+        timeout=timeout,
+        allowed_domains=set(allowed_domains or []) or None,
+    )
+
+
+@mcp.tool()
+def parser_extract_public_refs(
+    tab_id: str,
+    user_id: str,
+    schema: dict[str, Any],
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Run camofox-browser deterministic schema extraction against existing snapshot refs."""
+    return extract_camofox_refs(tab_id, user_id=user_id, schema=schema, timeout=timeout)
+
+
+@mcp.tool()
+def parser_close_public_rest(
+    tab_id: str,
+    user_id: str,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Close a retained public Camoufox tab."""
+    return close_camofox_snapshot(tab_id, user_id=user_id, timeout=timeout)
 
 
 @mcp.tool()
