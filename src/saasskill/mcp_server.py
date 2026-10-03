@@ -13,6 +13,7 @@ from .ads import normalize_ads_result
 from .ad_requests import build_ads_read_request
 from .direct_ads_transport import execute_ads_read_request
 from .direct_provider_transport import execute_direct_read
+from .provider_requests import build_direct_read_spec
 from .ads_write_transport import execute_ads_write_dispatch
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
 from .camofox_rest import fetch_surface as fetch_camofox_rest_surface
@@ -164,6 +165,61 @@ def ads_execute_read_request(
 ) -> dict[str, Any]:
     """Execute a concrete ads read request directly; defaults to dry-run and never performs writes."""
     return execute_ads_read_request(spec, dry_run=dry_run, timeout=timeout)
+
+
+@mcp.tool()
+def provider_build_direct_read_spec(
+    provider: str,
+    capability: str,
+    context: dict[str, Any],
+) -> dict[str, Any]:
+    """Build a direct-provider request spec without credentials or network access."""
+    return build_direct_read_spec(provider=provider, capability=capability, context=context)
+
+
+@mcp.tool()
+def project_build_pending_direct_spec(
+    project_id: str,
+    request_id: str,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a provider-specific direct read spec from a pending SAASskill request."""
+    _store_obj, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    merged = _ingest_context(state, pending, context)
+    return build_direct_read_spec(
+        provider=provider,
+        capability=pending.get("effective_capability"),
+        context=merged,
+    )
+
+
+@mcp.tool()
+def project_execute_pending_auto(
+    project_id: str,
+    request_id: str,
+    context: dict[str, Any] | None = None,
+    dry_run: bool = True,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Build the direct spec, execute it, normalize and ingest in one call."""
+    _store_obj, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    supported = {"ahrefs", "semrush", "posthog", "ga4", "yandex_metrica", "hubspot", "stripe"}
+    if provider not in supported:
+        raise ValueError(f"Automatic direct execution is not available for provider {provider}")
+    spec = build_direct_read_spec(
+        provider=provider,
+        capability=pending.get("effective_capability"),
+        context=_ingest_context(state, pending, context),
+    )
+    return project_execute_pending_direct(
+        project_id=project_id,
+        request_id=request_id,
+        spec=spec,
+        dry_run=dry_run,
+        timeout=timeout,
+    )
 
 
 @mcp.tool()
