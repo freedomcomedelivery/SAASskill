@@ -177,3 +177,53 @@ def extract_refs(
         body={"userId": user_id, "schema": schema},
         timeout=timeout,
     )
+
+
+def open_snapshot(
+    url: str,
+    *,
+    user_id: str | None = None,
+    session_key: str | None = None,
+    allowed_domains: set[str] | None = None,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Open a public page and keep the tab alive for deterministic ref extraction."""
+    validate_public_url(url, allowed_domains)
+    user_id = user_id or ("saasskill-" + uuid.uuid4().hex[:8])
+    session_key = session_key or "public-extract"
+    created = _call(
+        "/tabs",
+        method="POST",
+        body={"userId": user_id, "sessionKey": session_key, "url": url},
+        timeout=timeout,
+    )
+    tab_id = created.get("tabId")
+    if not tab_id:
+        raise RuntimeError(f"camofox-browser did not return tabId: {created}")
+    try:
+        query = urllib.parse.urlencode({"userId": user_id, "includeScreenshot": "false"})
+        snap = _call(f"/tabs/{urllib.parse.quote(str(tab_id))}/snapshot?{query}", timeout=timeout)
+        final_url = snap.get("url") or created.get("url") or url
+        validate_public_url(final_url, allowed_domains)
+        raw = {
+            "requested_url": url,
+            "url": final_url,
+            "title": snap.get("title") or created.get("title"),
+            "snapshot": snap.get("snapshot") or snap.get("content") or "",
+            "provider": "camofox-browser-rest",
+            "tab_id": tab_id,
+            "user_id": user_id,
+        }
+        return {**raw, "surface": accessibility_to_surface(raw)}
+    except Exception:
+        close_snapshot(tab_id, user_id=user_id, timeout=timeout)
+        raise
+
+
+def close_snapshot(tab_id: str, *, user_id: str, timeout: float = 30.0) -> dict[str, Any]:
+    query = urllib.parse.urlencode({"userId": user_id})
+    return _call(
+        f"/tabs/{urllib.parse.quote(str(tab_id))}?{query}",
+        method="DELETE",
+        timeout=timeout,
+    )
