@@ -28,6 +28,12 @@
         "scale_or_pivot"
       ]
     },
+    "runtime_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "personal_concept": {
       "type": [
         "object",
@@ -119,6 +125,24 @@
       }
     },
     "next_action": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stage_history": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "action_log": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "created_at": {
       "type": [
         "string",
         "null"

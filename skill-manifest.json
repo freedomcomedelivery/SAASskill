@@ -1,8 +1,14 @@
 {
   "name": "pet-project-launch-operator",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "language": "ru",
   "entrypoint": "SKILL.md",
+  "runtime": {
+    "package": "saasskill",
+    "python": ">=3.10",
+    "cli": "saasskill",
+    "state_store": ".saasskill/projects/<project_id>/state.json"
+  },
   "source_methodology": "Практикум по пет-проектам, May 2026 materials supplied by user",
   "artifacts": [
     "project_state",

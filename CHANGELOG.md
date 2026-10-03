@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2
+- Executable Python runtime and CLI.
+- Filesystem project-state store with atomic writes.
+- Deterministic stage gate engine and stage-history audit trail.
+- Explicit force override with mandatory reason.
+- Research/metrics/action adapter contracts with approval enforcement.
+- Host work planner (`saasskill plan`) for web/SEO/Ads/analytics routing.
+- 7 runtime unit tests plus CI smoke demo.
+- Runtime gate/work-item schemas and v1.2 example project state.
+
+
 ## 1.1
 - GitHub Actions validation workflow.
 - Static repository validator.

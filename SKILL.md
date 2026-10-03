@@ -80,3 +80,16 @@ description: Операционный агент запуска пет-прое�
 - Schemas: `schemas/`
 - Course source trace: `references/course-map-full.md` и `references/source-inventory.md`
 - Evals: `evals/`
+
+
+## Executable runtime v1.2
+Если среда поддерживает репозиторий как исполняемый пакет, используй
+`src/saasskill/` как детерминированный control plane:
+- `ProjectStore` хранит реальный project state;
+- `evaluate_stage` применяет gates;
+- `Orchestrator.advance` единолично двигает stage;
+- `build_work_queue` переводит gaps в задачи для web/SEO/Ads/analytics/user input;
+- внешние side effects проходят через `ActionAdapter` и explicit approval.
+
+LLM не должна сама менять stage в обход runtime. Force override допустим только с
+зафиксированной причиной. См. `docs/runtime.md`.

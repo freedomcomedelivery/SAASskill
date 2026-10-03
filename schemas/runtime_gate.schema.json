@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RuntimeGateResult",
+  "type": "object",
+  "properties": {
+    "stage": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "needs_evidence",
+        "needs_user_input",
+        "needs_simplification",
+        "blocked"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_action": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "stage",
+    "status",
+    "reasons",
+    "missing"
+  ],
+  "additionalProperties": false
+}

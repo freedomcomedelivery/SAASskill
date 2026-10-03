@@ -2,6 +2,7 @@ name: validate-skill
 on:
   push:
   pull_request:
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -10,7 +11,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate repository
+      - name: Validate repository contracts
         run: python scripts/validate_repo.py
-      - name: Validate eval fixtures
+      - name: Validate behavior eval contract
         run: python scripts/run_evals.py
+      - name: Runtime unit tests
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: Runtime smoke demo
+        env:
+          PYTHONPATH: src
+        run: python scripts/demo_runtime.py

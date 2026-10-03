@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WorkItem",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "state",
+        "user_input",
+        "research",
+        "artifact",
+        "technical",
+        "calculation",
+        "approval",
+        "action",
+        "metrics",
+        "operation",
+        "analysis",
+        "decision"
+      ]
+    },
+    "key": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "autonomous": {
+      "type": "boolean"
+    },
+    "provider_hint": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "kind",
+    "key",
+    "description",
+    "autonomous"
+  ],
+  "additionalProperties": false
+}

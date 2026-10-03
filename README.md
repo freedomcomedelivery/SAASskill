@@ -1,8 +1,8 @@
-# Pet Project Launch Operator v1.1
+# Pet Project Launch Operator v1.2
 
 Это не конспект курса. Это repo-ready база для агента, который выполняет продуктовый запуск по методике «Практикума по пет-проектам».
 
-## Что входит в v1.1
+## Что входит в v1.2
 - полная карта всех блоков и уроков транскрипта;
 - state machine и orchestrator loop;
 - отдельные schemas для market/research/landing/economics/lead/approval;
@@ -34,3 +34,18 @@ Skill собран из пользовательских транскрипто�
 
 ## Ограничение
 Specific UI steps и platform rules быстро устаревают. Поэтому playbooks разделяют `course_heuristic` и текущие platform facts. Перед внешним действием требуется current check.
+
+
+## Executable runtime
+
+v1.2 добавляет детерминированный Python runtime: project state на диске, gate engine,
+audit trail, explicit approvals, CLI и host work planner.
+
+```bash
+PYTHONPATH=src python -m saasskill init "My project" --project-id my-project
+PYTHONPATH=src python -m saasskill status my-project
+PYTHONPATH=src python -m saasskill plan my-project
+PYTHONPATH=src python -m saasskill advance my-project
+```
+
+Подробности: [docs/runtime.md](docs/runtime.md).

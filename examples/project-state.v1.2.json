@@ -1,0 +1,70 @@
+{
+  "project_id": "podcast-shorts-demo",
+  "name": "Podcast → Shorts",
+  "stage": "idea_selection",
+  "runtime_version": "1.2.0",
+  "personal_concept": {
+    "experience": [
+      "backend",
+      "ML"
+    ],
+    "budget": 500,
+    "nearest_goal": "first paid customer"
+  },
+  "markets": [
+    {
+      "name": "AI video repurposing",
+      "definition": "Software/services that turn long-form video/audio into short-form clips.",
+      "players": [
+        "Reference A",
+        "Reference B",
+        "Reference C"
+      ],
+      "green_signals": {
+        "many_small_players": true,
+        "many_transactions": true,
+        "easy_switching": true
+      },
+      "evidence_ids": [
+        "ev_market_1"
+      ],
+      "gate_status": "pass"
+    }
+  ],
+  "ideas": [
+    {
+      "id": "idea_1",
+      "one_liner": "Turn podcast episodes into publish-ready Shorts",
+      "primary_pain": "Manual clip selection and editing takes too long",
+      "market_id": "ai-video-repurposing",
+      "references": [
+        "Reference A",
+        "Reference B",
+        "Reference C"
+      ],
+      "avg_competitor_check": 39,
+      "currency": "USD",
+      "usage_frequency": "weekly",
+      "feasible_as_pet_project": true,
+      "personal_fit": true,
+      "decision": "selected",
+      "evidence_ids": [
+        "ev_market_1",
+        "ev_price_1"
+      ]
+    }
+  ],
+  "selected_idea_id": "idea_1",
+  "research": null,
+  "marketing_contract": null,
+  "landing_brief": null,
+  "economics": null,
+  "channel_plan": null,
+  "evidence": [],
+  "approvals": [],
+  "leads": [],
+  "funnel_snapshots": [],
+  "iterations": [],
+  "blockers": [],
+  "next_action": "Run deep competitor/avatar/pain research."
+}
