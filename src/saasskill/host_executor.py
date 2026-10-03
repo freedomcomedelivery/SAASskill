@@ -65,6 +65,15 @@ class ToolRequest:
         }
 
 
+def _deep_merge(dst: dict[str, Any], src: dict[str, Any]) -> dict[str, Any]:
+    for key, value in src.items():
+        if isinstance(value, dict) and isinstance(dst.get(key), dict):
+            _deep_merge(dst[key], value)
+        else:
+            dst[key] = deepcopy(value)
+    return dst
+
+
 class HostExecutor:
     """Create provider-neutral tool requests and ingest host results."""
 
@@ -224,6 +233,20 @@ class HostExecutor:
             raise PermissionError(f"Host result cannot patch protected roots: {', '.join(forbidden)}")
         for key, value in patch.items():
             state[key] = deepcopy(value)
+
+        merge_patch = normalized.get("state_merge_patch") or {}
+        forbidden_merge = sorted(set(merge_patch) - PATCHABLE_ROOTS)
+        if forbidden_merge:
+            raise PermissionError(f"Host result cannot merge protected roots: {', '.join(forbidden_merge)}")
+        for key, value in merge_patch.items():
+            if not isinstance(value, dict):
+                state[key] = deepcopy(value)
+                continue
+            current = state.get(key)
+            if not isinstance(current, dict):
+                current = {}
+                state[key] = current
+            _deep_merge(current, value)
 
         pending["status"] = "completed" if status == "ok" else status
         pending["completed_at"] = utc_now()

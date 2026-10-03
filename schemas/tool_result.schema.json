@@ -49,6 +49,9 @@
         "string",
         "null"
       ]
+    },
+    "state_merge_patch": {
+      "type": "object"
     }
   },
   "required": [

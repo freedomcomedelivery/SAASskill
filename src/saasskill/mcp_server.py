@@ -12,6 +12,7 @@ from .ahrefs import normalize_ahrefs_result
 from .ads import normalize_ads_result
 from .ad_requests import build_ads_read_request
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
+from .parser_normalizer import normalize_public_page_result
 from .executors import ExecutionManager, execution_plan_digest
 from .integration_status import integration_matrix, integration_status
 from .semrush import normalize_semrush_result
@@ -212,6 +213,116 @@ def ads_complete_execution(project_id: str, plan_id: str, result: dict[str, Any]
     plan = ExecutionManager().complete(state, plan_id=plan_id, result=result)
     store.save(state)
     return plan
+
+
+def _pending_request(project_id: str, request_id: str) -> tuple[ProjectStore, dict[str, Any], dict[str, Any]]:
+    store = _store()
+    state = store.load(project_id)
+    pending = next(
+        (x for x in state.get("pending_tool_requests", []) if x.get("request_id") == request_id and x.get("status") == "pending"),
+        None,
+    )
+    if pending is None:
+        raise ValueError(f"Pending request not found: {request_id}")
+    return store, state, pending
+
+
+def _ingest_context(state: dict[str, Any], pending: dict[str, Any], extra: dict[str, Any] | None = None) -> dict[str, Any]:
+    ctx = dict((pending.get("payload") or {}).get("state_context") or {})
+    ctx.update({
+        "workflow": state.get("workflow"),
+        "stage": state.get("stage"),
+        "work_key": pending.get("work_key"),
+    })
+    ctx.update(extra or {})
+    return ctx
+
+
+@mcp.tool()
+def project_ingest_ahrefs(
+    project_id: str,
+    request_id: str,
+    endpoint: str,
+    payload: dict[str, Any],
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply an Ahrefs result for an existing pending request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    if pending.get("provider") != "ahrefs":
+        raise ValueError(f"Request {request_id} is routed to {pending.get('provider')}, not ahrefs")
+    result = normalize_ahrefs_result(
+        request_id=request_id,
+        endpoint=endpoint,
+        payload=payload,
+        context=_ingest_context(state, pending, context),
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_ingest_semrush(
+    project_id: str,
+    request_id: str,
+    report_type: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply a Semrush result for an existing pending request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    if pending.get("provider") != "semrush":
+        raise ValueError(f"Request {request_id} is routed to {pending.get('provider')}, not semrush")
+    result = normalize_semrush_result(
+        request_id=request_id,
+        report_type=report_type,
+        payload=payload,
+        context=_ingest_context(state, pending, context),
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_ingest_ads(
+    project_id: str,
+    request_id: str,
+    payload: Any,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply a concrete ad-provider read result."""
+    store, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    capability = pending.get("effective_capability")
+    if provider not in {"google_ads", "meta_ads", "yandex_direct", "apple_ads"}:
+        raise ValueError(f"Automatic ads ingestion is not available for provider {provider}")
+    result = normalize_ads_result(
+        provider=provider,
+        request_id=request_id,
+        payload=payload,
+        context=_ingest_context(state, pending, context),
+        capability=capability,
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_ingest_public_page(
+    project_id: str,
+    request_id: str,
+    snapshot: dict[str, Any],
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Normalize and apply a public-page/browser parse result."""
+    store, state, pending = _pending_request(project_id, request_id)
+    effective = pending.get("effective_capability")
+    if effective not in {"web.browser_parse", "web.fetch"}:
+        raise ValueError(f"Request {request_id} is not a page-fetch/browser request")
+    result = normalize_public_page_result(
+        request_id=request_id,
+        snapshot=snapshot,
+        context=_ingest_context(state, pending, context),
+        provider=pending.get("provider") or "web",
+        capability=effective,
+    )
+    return HostExecutor(store).apply_result(project_id, result)
 
 
 @mcp.tool()

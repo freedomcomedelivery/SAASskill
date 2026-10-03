@@ -38,3 +38,15 @@ and page-function architecture.
 
 SAASskill's Camoufox layer intentionally excludes login automation, CAPTCHA solving,
 challenge bypass, proxy rotation and authenticated session import.
+
+
+## One-call result ingestion
+
+Hosts should prefer `project_ingest_ahrefs`, `project_ingest_semrush`,
+`project_ingest_ads` and `project_ingest_public_page` over manually chaining
+normalizer + `project_apply_result`. These tools resolve the pending request first,
+derive expected provider/capability/context, normalize the payload and apply evidence
+in one call.
+
+Tool results may also use `state_merge_patch` for deterministic nested facts such
+as parsed landing surface or observed ad metrics; protected roots remain enforced.

@@ -72,6 +72,14 @@ def _envelope(request_id: str, provider: str, rows: list[dict[str, Any]], payloa
         + f", impressions={int(total['impressions'])}, clicks={int(total['clicks'])}, "
           f"conversions={total['conversions']:.2f}, purchases={total['purchases']:.2f}."
     )
+    merge_patch = {}
+    if context.get("workflow") == "existing_project_audit":
+        merge_patch = {
+            "audit_snapshot": {
+                "ad_metrics": {"provider": provider, "totals": total, "rows": rows[:100]},
+                "economics": {"observed_ad_spend": total["spend"]},
+            }
+        }
     return {
         "request_id": request_id,
         "provider": provider,
@@ -88,6 +96,7 @@ def _envelope(request_id: str, provider: str, rows: list[dict[str, Any]], payloa
             "notes": "Derived CTR/CPC/CPM/CPA/ROAS are calculated from the normalized returned report rows.",
         }],
         "state_patch": {},
+        "state_merge_patch": merge_patch,
     }
 
 
@@ -270,6 +279,13 @@ def normalize_ads_inventory(
     rows = _inventory_rows(provider, payload)
     label = "accounts" if capability == "ads.accounts.read" else "campaigns"
     target = context.get("account_id") or context.get("target") or "account"
+    merge_patch = {}
+    if context.get("workflow") == "existing_project_audit":
+        merge_patch = {
+            "audit_snapshot": {
+                "connected_ad_inventory": {"provider": provider, "capability": capability, "rows": rows[:100]}
+            }
+        }
     return {
         "request_id": request_id,
         "provider": provider,
@@ -286,6 +302,7 @@ def normalize_ads_inventory(
             "notes": f"Normalized inventory rows: {rows[:20]}",
         }],
         "state_patch": {},
+        "state_merge_patch": merge_patch,
     }
 
 
