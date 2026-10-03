@@ -117,7 +117,12 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         if not approved:
             q.append(_item("approval", "launch_approval", "Request approval with exact target, max spend, duration, assets and pause condition.", autonomous=False))
         else:
-            q.append(_item("action", "execute_launch", "Execute only the approved advertising action and read back the result.", capability=ADS_CAMPAIGNS_WRITE, side_effect=True))
+            channel = (state.get("channel_plan") or {}).get("channel")
+            ad_channels = {"search", "meta", "google_display", "rsya", "app_store_asa"}
+            if channel in ad_channels:
+                q.append(_item("action", "execute_launch", "Execute only the approved advertising action and read back the result.", capability=ADS_CAMPAIGNS_WRITE, side_effect=True))
+            else:
+                q.append(_item("action", "execute_launch", "Execute only the approved channel action through a host tool that supports this channel.", autonomous=False, side_effect=True))
         return q
 
     if stage == "lead_onboarding":

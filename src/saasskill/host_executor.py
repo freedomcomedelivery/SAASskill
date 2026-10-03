@@ -117,6 +117,19 @@ class HostExecutor:
                 req["route_reason"] = route.reason
                 unresolved.append(req)
 
+        pending = state.setdefault("pending_tool_requests", [])
+        for req in requests:
+            pending[:] = [
+                old for old in pending
+                if not (
+                    old.get("status") == "pending"
+                    and old.get("work_key") == req["work_key"]
+                    and old.get("payload", {}).get("stage") == state.get("stage")
+                )
+            ]
+            pending.append({**deepcopy(req), "status": "pending"})
+        self.store.save(state)
+
         return {
             "project_id": project_id,
             "stage": state.get("stage"),
@@ -132,16 +145,49 @@ class HostExecutor:
         status = result.get("status")
         if status not in {"ok", "error", "skipped"}:
             raise ValueError("result.status must be ok, error or skipped")
-        if not result.get("request_id"):
+        request_id = result.get("request_id")
+        if not request_id:
             raise ValueError("result.request_id is required")
 
-        provider = result.get("provider")
-        capability = result.get("capability")
-        degraded = bool(result.get("degraded"))
+        pending = next(
+            (x for x in state.get("pending_tool_requests", []) if x.get("request_id") == request_id),
+            None,
+        )
+        if pending is None:
+            raise PermissionError(f"Unknown or unplanned request_id: {request_id}")
+        if pending.get("status") != "pending":
+            raise PermissionError(f"Request is not pending: {request_id}")
 
-        state.setdefault("tool_results", []).append(deepcopy(result))
+        expected_provider = pending.get("provider")
+        expected_capability = pending.get("effective_capability")
+        supplied_provider = result.get("provider")
+        supplied_capability = result.get("capability")
+        if supplied_provider is not None and supplied_provider != expected_provider:
+            raise PermissionError(
+                f"Provider mismatch for {request_id}: expected {expected_provider}, got {supplied_provider}"
+            )
+        if supplied_capability is not None and supplied_capability != expected_capability:
+            raise PermissionError(
+                f"Capability mismatch for {request_id}: expected {expected_capability}, got {supplied_capability}"
+            )
 
-        for ev in result.get("evidence", []) or []:
+        if pending.get("side_effect"):
+            approved = [a for a in state.get("approvals", []) if a.get("status") == "approved"]
+            if not approved:
+                raise PermissionError("Side-effect result rejected: no approved approval exists")
+
+        provider = expected_provider
+        capability = expected_capability
+        degraded = bool(pending.get("degraded"))
+
+        normalized = deepcopy(result)
+        normalized["provider"] = provider
+        normalized["capability"] = capability
+        normalized["degraded"] = degraded
+        normalized["observed_at"] = normalized.get("observed_at") or utc_now()
+        state.setdefault("tool_results", []).append(normalized)
+
+        for ev in normalized.get("evidence", []) or []:
             notes = ev.get("notes")
             provenance = f"provider={provider}; capability={capability}; degraded={degraded}"
             notes = f"{notes}; {provenance}" if notes else provenance
@@ -158,16 +204,19 @@ class HostExecutor:
                 notes=notes,
             )
 
-        patch = result.get("state_patch") or {}
+        patch = normalized.get("state_patch") or {}
         forbidden = sorted(set(patch) - PATCHABLE_ROOTS)
         if forbidden:
             raise PermissionError(f"Host result cannot patch protected roots: {', '.join(forbidden)}")
         for key, value in patch.items():
             state[key] = deepcopy(value)
 
+        pending["status"] = "completed" if status == "ok" else status
+        pending["completed_at"] = utc_now()
+
         state.setdefault("action_log", []).append({
             "type": "tool_result",
-            "request_id": result["request_id"],
+            "request_id": request_id,
             "provider": provider,
             "capability": capability,
             "status": status,

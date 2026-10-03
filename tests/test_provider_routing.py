@@ -29,7 +29,7 @@ class ProviderRouterTests(unittest.TestCase):
         route = ProviderRouter(["web", "ahrefs"]).resolve("ads.campaigns.write")
         self.assertFalse(route.resolved)
 
-    def test_host_plan_routes_market_work(self):
+    def test_host_plan_routes_and_persists_market_work(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = ProjectStore(Path(tmp) / "projects")
             state = store.create("X", "x")
@@ -40,31 +40,63 @@ class ProviderRouterTests(unittest.TestCase):
             self.assertEqual(routed["market_players"]["provider"], "web")
             self.assertEqual(routed["market_demand"]["provider"], "ahrefs")
             self.assertEqual(routed["market_structure"]["provider"], "ahrefs")
+            persisted = store.load("x")["pending_tool_requests"]
+            self.assertEqual(len(persisted), 3)
+            self.assertTrue(all(x["status"] == "pending" for x in persisted))
 
-    def test_apply_result_protects_stage(self):
+    def test_apply_result_rejects_unknown_request(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = ProjectStore(Path(tmp) / "projects")
             store.create("X", "x")
             executor = HostExecutor(store)
             with self.assertRaises(PermissionError):
+                executor.apply_result("x", {"request_id": "req_fake", "status": "ok"})
+
+    def test_apply_result_rejects_provider_spoof(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = ProjectStore(Path(tmp) / "projects")
+            state = store.create("X", "x")
+            state["stage"] = "market_discovery"
+            store.save(state)
+            executor = HostExecutor(store)
+            plan = executor.plan("x", available_providers=["web", "ahrefs"])
+            req = next(x for x in plan["requests"] if x["work_key"] == "market_demand")
+            with self.assertRaises(PermissionError):
                 executor.apply_result("x", {
-                    "request_id": "req_1",
+                    "request_id": req["request_id"],
                     "status": "ok",
                     "provider": "web",
-                    "capability": "web.search",
+                    "capability": req["effective_capability"],
+                })
+
+    def test_apply_result_protects_stage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = ProjectStore(Path(tmp) / "projects")
+            state = store.create("X", "x")
+            state["stage"] = "market_discovery"
+            store.save(state)
+            executor = HostExecutor(store)
+            plan = executor.plan("x", available_providers=["web"])
+            req = next(x for x in plan["requests"] if x["work_key"] == "market_players")
+            with self.assertRaises(PermissionError):
+                executor.apply_result("x", {
+                    "request_id": req["request_id"],
+                    "status": "ok",
                     "state_patch": {"stage": "scale_or_pivot"},
                 })
 
     def test_apply_result_adds_evidence_and_safe_patch(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = ProjectStore(Path(tmp) / "projects")
-            store.create("X", "x")
+            state = store.create("X", "x")
+            state["stage"] = "market_discovery"
+            store.save(state)
             executor = HostExecutor(store)
+            plan = executor.plan("x", available_providers=["web", "ahrefs"])
+            req = next(x for x in plan["requests"] if x["work_key"] == "market_demand")
             out = executor.apply_result("x", {
-                "request_id": "req_1",
+                "request_id": req["request_id"],
                 "status": "ok",
-                "provider": "ahrefs",
-                "capability": "seo.keyword_metrics",
                 "evidence": [{
                     "kind": "fact",
                     "claim": "Keyword group has measurable demand",
@@ -77,6 +109,8 @@ class ProviderRouterTests(unittest.TestCase):
             state = store.load("x")
             self.assertEqual(state["markets"][0]["name"], "M")
             self.assertIn("provider=ahrefs", state["evidence"][0]["notes"])
+            request = next(x for x in state["pending_tool_requests"] if x["request_id"] == req["request_id"])
+            self.assertEqual(request["status"], "completed")
 
 
 if __name__ == "__main__":

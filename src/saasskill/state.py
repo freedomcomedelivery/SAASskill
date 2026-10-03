@@ -66,6 +66,8 @@ def new_project_state(name: str, project_id: str | None = None) -> dict[str, Any
             "forced": False,
         }],
         "action_log": [],
+        "pending_tool_requests": [],
+        "tool_results": [],
         "created_at": now,
         "updated_at": now,
     }

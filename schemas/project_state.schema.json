@@ -153,6 +153,18 @@
         "string",
         "null"
       ]
+    },
+    "pending_tool_requests": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "tool_results": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     }
   },
   "required": [
