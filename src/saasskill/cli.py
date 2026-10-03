@@ -70,6 +70,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("action_id")
     s.add_argument("status")
 
+    s = sub.add_parser("integration-check", help="Show local direct-mode integration readiness")
+    s.add_argument("name", nargs="?")
+
     s = sub.add_parser("advance")
     s.add_argument("project_id")
     s.add_argument("--force", action="store_true")
@@ -206,6 +209,10 @@ def main(argv: list[str] | None = None) -> int:
         store.save(state)
         _dump(action)
         return 0
+    if args.command == "integration-check":
+        from .integration_status import integration_matrix, integration_status
+        _dump(integration_status(args.name) if args.name else integration_matrix())
+        return 0
     if args.command == "advance":
         state, gate = orch.advance(args.project_id, force=args.force, reason=args.reason)
         _dump({"stage": state["stage"], "gate": gate.to_dict(), "next_action": state.get("next_action")})
@@ -285,6 +292,16 @@ def main(argv: list[str] | None = None) -> int:
         if args.action == "create":
             if not all([args.action_type, args.target, args.summary]):
                 raise SystemExit("approval create requires --action-type, --target and --summary")
+            if args.plan_id:
+                from .executors import ExecutionManager, execution_plan_digest
+                plan = ExecutionManager().get(state, args.plan_id)
+                plan_digest = execution_plan_digest(plan)
+                if args.max_spend is None:
+                    args.max_spend = plan.get("max_spend")
+                if args.currency is None:
+                    args.currency = plan.get("currency")
+            else:
+                plan_digest = None
             item = {
                 "id": args.id or f"apr_{uuid.uuid4().hex[:10]}",
                 "action_type": args.action_type,
@@ -295,6 +312,7 @@ def main(argv: list[str] | None = None) -> int:
                 "duration": args.duration,
                 "rollback_or_pause": args.rollback,
                 "plan_id": args.plan_id,
+                "plan_digest": plan_digest,
                 "status": "pending",
                 "created_at": utc_now(),
             }

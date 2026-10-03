@@ -24,7 +24,7 @@ class ExecutionManagerTests(unittest.TestCase):
         )
         state["approvals"].append({
             "id": "a1", "status": "approved", "plan_id": "other",
-            "max_spend": 50, "currency": "USD",
+            "plan_digest": plan["digest"], "max_spend": 50, "currency": "USD",
         })
         with self.assertRaises(PermissionError):
             manager.dispatch(state, plan_id=plan["id"], approval_id="a1", apply=True)
@@ -38,7 +38,7 @@ class ExecutionManagerTests(unittest.TestCase):
         )
         state["approvals"].append({
             "id": "a1", "status": "approved", "plan_id": plan["id"],
-            "max_spend": 100, "currency": "RUB",
+            "plan_digest": plan["digest"], "max_spend": 100, "currency": "RUB",
         })
         with self.assertRaises(PermissionError):
             manager.dispatch(state, plan_id=plan["id"], approval_id="a1", apply=True)
@@ -56,6 +56,21 @@ class ExecutionManagerTests(unittest.TestCase):
         manager.complete(state, plan_id=plan["id"], result={"status": "ok"})
         self.assertEqual(state["growth_plan"]["actions"][0]["status"], "executed")
 
+    def test_mutation_after_approval_is_rejected(self):
+        state = {"execution_plans": [], "approvals": []}
+        manager = ExecutionManager()
+        plan = manager.prepare(
+            state, provider="google_ads", operation="campaign.create",
+            target="123", payload={"name": "A"}, max_spend=100, currency="USD",
+        )
+        state["approvals"].append({
+            "id": "a1", "status": "approved", "plan_id": plan["id"],
+            "plan_digest": plan["digest"], "max_spend": 100, "currency": "USD",
+        })
+        plan["payload"]["name"] = "B"
+        with self.assertRaises(PermissionError):
+            manager.dispatch(state, plan_id=plan["id"], approval_id="a1", apply=True)
+
     def test_exact_approval_dispatches(self):
         state = {"execution_plans": [], "approvals": []}
         manager = ExecutionManager()
@@ -65,7 +80,7 @@ class ExecutionManagerTests(unittest.TestCase):
         )
         state["approvals"].append({
             "id": "a1", "status": "approved", "plan_id": plan["id"],
-            "max_spend": None, "currency": "USD",
+            "plan_digest": plan["digest"], "max_spend": None, "currency": "USD",
         })
         dispatch = manager.dispatch(state, plan_id=plan["id"], approval_id="a1", apply=True)
         self.assertFalse(dispatch["dry_run"])

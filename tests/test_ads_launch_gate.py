@@ -21,7 +21,7 @@ class AdsLaunchGateTests(unittest.TestCase):
             )
             state["approvals"] = [{
                 "id": "a1", "status": "approved", "plan_id": plan["id"],
-                "max_spend": 100, "currency": "USD",
+                "plan_digest": plan["digest"], "max_spend": 100, "currency": "USD",
             }]
             self.assertFalse(evaluate_stage(state).passed)
             manager.dispatch(state, plan_id=plan["id"], approval_id="a1", apply=True)

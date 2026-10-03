@@ -22,3 +22,8 @@ Advertising writes should use `execution_plans`. An approval for one plan does n
 authorize another plan. Spend caps and currency are validated at dispatch time.
 Generic “approved somewhere in the project” is not sufficient authorization for a
 new execution plan.
+
+
+Execution approvals also store the plan digest. Any mutation to provider, operation,
+target, payload, spend cap, currency or related growth action invalidates the approval.
+Prepare a new plan instead of reusing the old approval.

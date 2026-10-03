@@ -12,7 +12,8 @@ from .ahrefs import normalize_ahrefs_result
 from .ads import normalize_ads_result
 from .ad_requests import build_ads_read_request
 from .camoufox_parser import extract_html_snapshot, fetch_public_page
-from .executors import ExecutionManager
+from .executors import ExecutionManager, execution_plan_digest
+from .integration_status import integration_matrix, integration_status
 from .semrush import normalize_semrush_result
 from .host_executor import HostExecutor
 from .orchestrator import Orchestrator
@@ -24,6 +25,12 @@ mcp = MCPServer("saasskill")
 
 def _store() -> ProjectStore:
     return ProjectStore(os.getenv("SAASSKILL_PROJECT_ROOT", ".saasskill/projects"))
+
+
+@mcp.tool()
+def integration_check(name: str | None = None) -> dict[str, Any]:
+    """Show local direct-mode readiness without exposing secret values."""
+    return integration_status(name) if name else integration_matrix()
 
 
 @mcp.tool()
@@ -332,6 +339,9 @@ def approval_create(project_id: str, action_type: str, target: str, summary: str
             max_spend = plan.get("max_spend")
         if currency is None:
             currency = plan.get("currency")
+        plan_digest = execution_plan_digest(plan)
+    else:
+        plan_digest = None
     item = {
         "id": f"apr_{uuid.uuid4().hex[:10]}",
         "action_type": action_type,
@@ -342,6 +352,7 @@ def approval_create(project_id: str, action_type: str, target: str, summary: str
         "duration": duration,
         "rollback_or_pause": rollback_or_pause,
         "plan_id": plan_id,
+        "plan_digest": plan_digest,
         "status": "pending",
         "created_at": utc_now(),
     }

@@ -44,6 +44,16 @@
         "failed",
         "cancelled"
       ]
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:"
+    },
+    "related_action_id": {
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
   "required": [
@@ -53,7 +63,8 @@
     "target",
     "payload",
     "side_effect",
-    "status"
+    "status",
+    "digest"
   ],
   "additionalProperties": true
 }

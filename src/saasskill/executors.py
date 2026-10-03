@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
 from copy import deepcopy
 from typing import Any
@@ -18,8 +20,23 @@ PROVIDER_TRANSPORT = {
 }
 
 
+def execution_plan_digest(plan: dict[str, Any]) -> str:
+    material = {
+        "provider": plan.get("provider"),
+        "operation": plan.get("operation"),
+        "target": plan.get("target"),
+        "payload": plan.get("payload"),
+        "max_spend": plan.get("max_spend"),
+        "currency": plan.get("currency"),
+        "side_effect": plan.get("side_effect"),
+        "related_action_id": plan.get("related_action_id"),
+    }
+    encoded = json.dumps(material, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
 class ExecutionManager:
-    """Store dry-run-first external action plans and bind approvals to exact plan IDs."""
+    """Store dry-run-first external action plans and bind approvals to exact immutable contents."""
 
     def prepare(
         self,
@@ -50,6 +67,7 @@ class ExecutionManager:
             "status": "prepared",
             "created_at": utc_now(),
         }
+        plan["digest"] = execution_plan_digest(plan)
         state.setdefault("execution_plans", []).append(plan)
         return plan
 
@@ -64,6 +82,11 @@ class ExecutionManager:
             raise PermissionError("Approval must be approved")
         if approval.get("plan_id") != plan.get("id"):
             raise PermissionError("Approval is not bound to this execution plan")
+        current_digest = execution_plan_digest(plan)
+        if plan.get("digest") != current_digest:
+            raise PermissionError("Execution plan changed after preparation; prepare a new plan")
+        if approval.get("plan_digest") != current_digest:
+            raise PermissionError("Approval digest does not match current execution plan")
         approved_cap = approval.get("max_spend")
         requested_cap = plan.get("max_spend")
         if approved_cap is not None and requested_cap is not None and float(requested_cap) > float(approved_cap):
@@ -81,8 +104,12 @@ class ExecutionManager:
         apply: bool = False,
     ) -> dict[str, Any]:
         plan = self.get(state, plan_id)
+        if plan.get("status") not in {"prepared", "dispatched"}:
+            raise PermissionError(f"Execution plan is not dispatchable from status {plan.get('status')}")
         approval = None
         if apply and plan.get("side_effect"):
+            if plan.get("status") != "prepared":
+                raise PermissionError("A side-effect plan can only be dispatched once")
             if not approval_id:
                 raise PermissionError("Side-effect dispatch requires approval_id")
             approval = next((x for x in state.get("approvals", []) if x.get("id") == approval_id), None)
@@ -92,6 +119,8 @@ class ExecutionManager:
 
         dispatch = {
             "plan_id": plan_id,
+            "plan_digest": plan.get("digest"),
+            "idempotency_key": plan_id,
             "provider": plan["provider"],
             "transport": plan["transport"],
             "operation": plan["operation"],
@@ -99,6 +128,7 @@ class ExecutionManager:
             "payload": deepcopy(plan["payload"]),
             "max_spend": plan.get("max_spend"),
             "currency": plan.get("currency"),
+            "related_action_id": plan.get("related_action_id"),
             "apply": bool(apply),
             "dry_run": not bool(apply),
             "approval_id": approval_id if apply else None,
@@ -112,12 +142,15 @@ class ExecutionManager:
 
     def complete(self, state: dict[str, Any], *, plan_id: str, result: dict[str, Any]) -> dict[str, Any]:
         plan = self.get(state, plan_id)
+        if plan.get("side_effect") and plan.get("status") != "dispatched":
+            raise PermissionError("Side-effect execution can only complete after approved dispatch")
         status = result.get("status")
         if status not in {"ok", "error"}:
             raise ValueError("Execution result status must be ok or error")
         plan["status"] = "executed" if status == "ok" else "failed"
         plan["completed_at"] = utc_now()
         plan["result"] = deepcopy(result)
+
         related_action_id = plan.get("related_action_id")
         if related_action_id:
             actions = (state.get("growth_plan") or {}).get("actions") or []
