@@ -10,6 +10,7 @@ from .audit import build_growth_plan, growth_priorities, mark_audit_section, ref
 from .autopilot import ProjectRunner
 from .ahrefs import normalize_ahrefs_result
 from .ads import normalize_ads_result
+from .ads_drafts import build_campaign_draft, render_provider_intent, validate_campaign_draft
 from .ad_requests import build_ads_read_request
 from .direct_ads_transport import execute_ads_read_request
 from .direct_provider_transport import execute_direct_read
@@ -135,6 +136,67 @@ def provider_normalize_ads(
         context=context,
         capability=capability,
     )
+
+
+@mcp.tool()
+def ads_build_campaign_draft(
+    channel_plan: dict[str, Any],
+    landing_url: str | None = None,
+    creatives: list[dict[str, Any]] | None = None,
+    keywords: list[Any] | None = None,
+    audience: dict[str, Any] | None = None,
+    stop_conditions: list[str] | None = None,
+) -> dict[str, Any]:
+    """Build and validate a credential-free provider-neutral advertising draft."""
+    return build_campaign_draft(
+        channel_plan=channel_plan,
+        landing_url=landing_url,
+        creatives=creatives,
+        keywords=keywords,
+        audience=audience,
+        stop_conditions=stop_conditions,
+    )
+
+
+@mcp.tool()
+def ads_prepare_campaign_from_project(
+    project_id: str,
+    provider: str,
+    account_id: str,
+    landing_url: str | None = None,
+    creatives: list[dict[str, Any]] | None = None,
+    keywords: list[Any] | None = None,
+    audience: dict[str, Any] | None = None,
+    stop_conditions: list[str] | None = None,
+    related_action_id: str | None = None,
+) -> dict[str, Any]:
+    """Build campaign draft from project channel_plan and persist an immutable execution plan."""
+    store = _store()
+    state = store.load(project_id)
+    channel_plan = state.get("channel_plan") or {}
+    draft = build_campaign_draft(
+        channel_plan=channel_plan,
+        landing_url=landing_url,
+        creatives=creatives,
+        keywords=keywords,
+        audience=audience,
+        stop_conditions=stop_conditions,
+    )
+    intent = render_provider_intent(draft, provider=provider, account_id=account_id)
+    state.setdefault("campaign_drafts", []).append(draft)
+    plan = ExecutionManager().prepare(
+        state,
+        provider=intent["provider"],
+        operation=intent["operation"],
+        target=intent["target"],
+        payload=intent["payload"],
+        max_spend=intent["max_spend"],
+        currency=intent["currency"],
+        side_effect=True,
+        related_action_id=related_action_id,
+    )
+    store.save(state)
+    return {"draft": draft, "execution_plan": plan}
 
 
 @mcp.tool()
