@@ -56,3 +56,30 @@ as parsed landing surface or observed ad metrics; protected roots remain enforce
 
 See [analytics, CRM and payments](downstream-funnel.md). Payment processor evidence
 is kept distinct from ad conversions and CRM lifecycle labels.
+
+
+## Direct-mode last mile
+
+Without any credentials, the repository now has dry-run-capable direct transports for:
+- Ahrefs and Semrush;
+- Google Ads, Meta Ads, Yandex Direct and Apple Ads reads;
+- GA4, PostHog and Yandex Metrica;
+- HubSpot CRM;
+- Stripe payments.
+
+MCP hosts can instead use the provider's remote MCP and feed the raw result through
+the same normalizers. The direct path is for self-hosted workers and integration tests.
+
+For browser research, `camofox_rest.py` speaks the REST API of
+`jo-inc/camofox-browser`. It only exposes public read/snapshot behavior in
+SAASskill. Login automation, cookie import, CAPTCHA handling, proxy rotation and
+interactive actions are intentionally outside this adapter.
+
+Advertising writes follow:
+`prepare execution plan → dry run → exact digest-bound approval → dispatch → direct
+write or host/MCP write → complete`.
+
+The built-in live direct writer is deliberately narrow before account testing:
+Google/Meta campaign status and Yandex campaign pause/resume. Complex campaign
+creation remains a rendered execution plan until provider-specific test-account
+fixtures are available.
