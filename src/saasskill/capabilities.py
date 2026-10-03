@@ -18,39 +18,25 @@ ADS_CAMPAIGNS_WRITE = "ads.campaigns.write"
 ANALYTICS_FUNNEL_READ = "analytics.funnel.read"
 CRM_LEADS_READ = "crm.leads.read"
 CRM_LEADS_WRITE = "crm.leads.write"
+PAYMENTS_TRANSACTIONS_READ = "payments.transactions.read"
 
 ALL_CAPABILITIES = {
     WEB_SEARCH, WEB_FETCH, WEB_BROWSER_PARSE,
     SEO_KEYWORD_METRICS, SEO_DOMAIN_METRICS, SEO_COMPETITOR_TRAFFIC,
     SEO_BACKLINKS, SEO_COMPETITOR_ADS,
     ADS_ACCOUNTS_READ, ADS_CAMPAIGNS_READ, ADS_PERFORMANCE_READ, ADS_CAMPAIGNS_WRITE,
-    ANALYTICS_FUNNEL_READ, CRM_LEADS_READ, CRM_LEADS_WRITE,
+    ANALYTICS_FUNNEL_READ, CRM_LEADS_READ, CRM_LEADS_WRITE, PAYMENTS_TRANSACTIONS_READ,
 }
 
 ADS_PROVIDER_CAPS = {
-    ADS_ACCOUNTS_READ,
-    ADS_CAMPAIGNS_READ,
-    ADS_PERFORMANCE_READ,
-    ADS_CAMPAIGNS_WRITE,
+    ADS_ACCOUNTS_READ, ADS_CAMPAIGNS_READ, ADS_PERFORMANCE_READ, ADS_CAMPAIGNS_WRITE,
 }
 
 PROVIDER_CAPABILITIES: dict[str, set[str]] = {
     "web": {WEB_SEARCH, WEB_FETCH},
     "camoufox": {WEB_FETCH, WEB_BROWSER_PARSE},
-    "semrush": {
-        SEO_KEYWORD_METRICS,
-        SEO_DOMAIN_METRICS,
-        SEO_COMPETITOR_TRAFFIC,
-        SEO_BACKLINKS,
-        SEO_COMPETITOR_ADS,
-    },
-    "ahrefs": {
-        SEO_KEYWORD_METRICS,
-        SEO_DOMAIN_METRICS,
-        SEO_COMPETITOR_TRAFFIC,
-        SEO_BACKLINKS,
-        SEO_COMPETITOR_ADS,
-    },
+    "semrush": {SEO_KEYWORD_METRICS, SEO_DOMAIN_METRICS, SEO_COMPETITOR_TRAFFIC, SEO_BACKLINKS, SEO_COMPETITOR_ADS},
+    "ahrefs": {SEO_KEYWORD_METRICS, SEO_DOMAIN_METRICS, SEO_COMPETITOR_TRAFFIC, SEO_BACKLINKS, SEO_COMPETITOR_ADS},
     "ads": ADS_PROVIDER_CAPS,
     "google_ads": ADS_PROVIDER_CAPS,
     "meta_ads": ADS_PROVIDER_CAPS,
@@ -58,7 +44,13 @@ PROVIDER_CAPABILITIES: dict[str, set[str]] = {
     "apple_ads": ADS_PROVIDER_CAPS,
     "pipeboard": ADS_PROVIDER_CAPS,
     "analytics": {ANALYTICS_FUNNEL_READ},
+    "posthog": {ANALYTICS_FUNNEL_READ},
+    "ga4": {ANALYTICS_FUNNEL_READ},
+    "yandex_metrica": {ANALYTICS_FUNNEL_READ},
     "crm": {CRM_LEADS_READ, CRM_LEADS_WRITE},
+    "hubspot": {CRM_LEADS_READ, CRM_LEADS_WRITE},
+    "payments": {PAYMENTS_TRANSACTIONS_READ},
+    "stripe": {PAYMENTS_TRANSACTIONS_READ},
 }
 
 DEFAULT_PROVIDER_ORDER: dict[str, list[str]] = {
@@ -74,9 +66,10 @@ DEFAULT_PROVIDER_ORDER: dict[str, list[str]] = {
     ADS_CAMPAIGNS_READ: ["ads", "pipeboard", "google_ads", "meta_ads", "yandex_direct", "apple_ads"],
     ADS_PERFORMANCE_READ: ["ads", "pipeboard", "google_ads", "meta_ads", "yandex_direct", "apple_ads"],
     ADS_CAMPAIGNS_WRITE: ["ads", "pipeboard", "google_ads", "meta_ads", "yandex_direct", "apple_ads"],
-    ANALYTICS_FUNNEL_READ: ["analytics"],
-    CRM_LEADS_READ: ["crm"],
-    CRM_LEADS_WRITE: ["crm"],
+    ANALYTICS_FUNNEL_READ: ["posthog", "ga4", "yandex_metrica", "analytics"],
+    CRM_LEADS_READ: ["hubspot", "crm"],
+    CRM_LEADS_WRITE: ["hubspot", "crm"],
+    PAYMENTS_TRANSACTIONS_READ: ["stripe", "payments"],
 }
 
 CAPABILITY_FALLBACKS: dict[str, list[str]] = {
