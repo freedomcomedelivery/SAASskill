@@ -144,3 +144,36 @@ def fetch_snapshot(
 
 def fetch_surface(url: str, **kwargs: Any) -> dict[str, Any]:
     return accessibility_to_surface(fetch_snapshot(url, **kwargs))
+
+
+def extract_refs(
+    tab_id: str,
+    *,
+    user_id: str,
+    schema: dict[str, Any],
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Call camofox-browser's deterministic ref-based extract route.
+
+    The caller must have obtained refs from a snapshot first. No arbitrary
+    JavaScript or interaction is executed.
+    """
+    if not tab_id or not user_id:
+        raise ValueError("tab_id and user_id are required")
+    if not isinstance(schema, dict) or schema.get("type") != "object":
+        raise ValueError("extract schema must be a JSON-Schema-like object")
+    props = schema.get("properties")
+    if not isinstance(props, dict) or not props:
+        raise ValueError("extract schema requires non-empty properties")
+    for name, spec in props.items():
+        if not isinstance(spec, dict):
+            raise ValueError(f"property {name} must be an object")
+        ref = spec.get("x-ref")
+        if ref is not None and not re.fullmatch(r"e\d+", str(ref)):
+            raise ValueError(f"property {name} has invalid x-ref")
+    return _call(
+        f"/tabs/{urllib.parse.quote(str(tab_id))}/extract",
+        method="POST",
+        body={"userId": user_id, "schema": schema},
+        timeout=timeout,
+    )
