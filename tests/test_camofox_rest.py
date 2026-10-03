@@ -34,6 +34,27 @@ class CamofoxRestTests(unittest.TestCase):
         self.assertIn("[heading]",out["snapshot"])
         self.assertTrue(any(method=="DELETE" for _,method,_ in calls))
 
+    def test_open_extract_close_lifecycle(self):
+        from saasskill.camofox_rest import open_snapshot, extract_refs, close_snapshot
+        calls=[]
+        def fake(path, method="GET", body=None, timeout=30.0):
+            calls.append((path,method,body))
+            if path == "/tabs":
+                return {"tabId":"t1","url":"https://example.com","title":"Example"}
+            if "/snapshot?" in path:
+                return {"url":"https://example.com","snapshot":'- link "Pricing" [e1]'}
+            if path.endswith("/extract"):
+                return {"ok":True,"data":{"price":"Pricing"}}
+            if method=="DELETE":
+                return {"ok":True}
+            raise AssertionError(path)
+        with patch("saasskill.camofox_rest._call", side_effect=fake):
+            handle=open_snapshot("https://example.com",allowed_domains={"example.com"})
+            out=extract_refs("t1",user_id=handle["user_id"],schema={"type":"object","properties":{"price":{"type":"string","x-ref":"e1"}}})
+            close_snapshot("t1",user_id=handle["user_id"])
+        self.assertEqual(out["data"]["price"],"Pricing")
+        self.assertTrue(any(method=="DELETE" for _,method,_ in calls))
+
     def test_private_url_is_rejected(self):
         with self.assertRaises(PermissionError):
             fetch_snapshot("http://127.0.0.1:8080")
