@@ -46,13 +46,19 @@ def execute_ads_write_dispatch(dispatch: dict[str, Any], *, dry_run: bool = True
         if not customer_id:
             raise ValueError("Google Ads write requires payload.customer_id")
         if operation == "campaign.status":
-            campaign = client.get_type("Campaign")
-            campaign.resource_name = client.get_service("CampaignService").campaign_path(customer_id, target)
-            campaign.status = client.enums.CampaignStatusEnum[payload["status"].upper()]
+            campaign_service = client.get_service("CampaignService")
             op = client.get_type("CampaignOperation")
-            op.update.CopyFrom(campaign)
-            op.update_mask.CopyFrom(protobuf_helpers.field_mask(None, campaign._pb))
-            result = client.get_service("CampaignService").mutate_campaigns(customer_id=customer_id, operations=[op])
+            campaign = op.update
+            campaign.resource_name = campaign_service.campaign_path(customer_id, target)
+            status = str(payload["status"]).upper()
+            if status not in {"ENABLED", "PAUSED"}:
+                raise ValueError("Google Ads campaign.status supports ENABLED or PAUSED")
+            campaign.status = getattr(client.enums.CampaignStatusEnum, status)
+            client.copy_from(
+                op.update_mask,
+                protobuf_helpers.field_mask(None, campaign._pb),
+            )
+            result = campaign_service.mutate_campaigns(customer_id=customer_id, operations=[op])
             return {"status": "ok", "provider": provider, "operation": operation, "result": str(result)}
         raise NotImplementedError("Google Ads direct writes currently support campaign.status only")
 
