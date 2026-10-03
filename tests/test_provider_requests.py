@@ -11,6 +11,7 @@ class ProviderRequestBuilderTests(unittest.TestCase):
         )
         self.assertEqual(spec["endpoint"],"keywords-explorer/matching-terms")
         self.assertEqual(spec["params"]["keywords"],"podcast clips")
+        self.assertIn("select",spec["params"])
 
     def test_semrush_domain_spec(self):
         spec=build_direct_read_spec(
@@ -19,6 +20,14 @@ class ProviderRequestBuilderTests(unittest.TestCase):
         )
         self.assertEqual(spec["report_type"],"domain_rank")
         self.assertEqual(spec["params"]["domain"],"example.com")
+
+    def test_ahrefs_competitor_spec_has_required_date_and_select(self):
+        spec=build_direct_read_spec(
+            provider="ahrefs", capability="seo.competitor_traffic",
+            context={"target":"example.com","country":"us","date":"2026-10-03"},
+        )
+        self.assertEqual(spec["params"]["date"],"2026-10-03")
+        self.assertIn("competitor_domain",spec["params"]["select"])
 
     def test_stripe_spec(self):
         spec=build_direct_read_spec(
