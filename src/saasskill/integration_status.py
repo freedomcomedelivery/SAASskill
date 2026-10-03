@@ -65,9 +65,14 @@ INTEGRATIONS = {
         "direct_env_any": [["STRIPE_API_KEY"]],
     },
     "camoufox": {
-        "preferred": "local_optional_dependency",
-        "package": "camoufox",
+        "preferred": "jo-inc/camofox-browser REST/MCP or local camoufox package",
+        "package_optional": "camoufox",
         "direct_env_any": [[]],
+    },
+    "camofox_rest": {
+        "preferred": "jo-inc/camofox-browser REST server",
+        "endpoint": "http://127.0.0.1:9377",
+        "direct_env_any": [["CAMOFOX_BASE_URL"]],
     },
 }
 
