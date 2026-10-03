@@ -2,15 +2,40 @@ from __future__ import annotations
 
 from typing import Any
 
+from .capabilities import (
+    ADS_CAMPAIGNS_WRITE,
+    ANALYTICS_FUNNEL_READ,
+    CRM_LEADS_READ,
+    SEO_COMPETITOR_TRAFFIC,
+    SEO_DOMAIN_METRICS,
+    SEO_KEYWORD_METRICS,
+    WEB_FETCH,
+    WEB_SEARCH,
+)
 from .gates import evaluate_stage
 
 
-def _item(kind: str, key: str, description: str, *, autonomous: bool = True, provider_hint: str | None = None) -> dict[str, Any]:
-    return {"kind": kind, "key": key, "description": description, "autonomous": autonomous, "provider_hint": provider_hint}
+def _item(
+    kind: str,
+    key: str,
+    description: str,
+    *,
+    autonomous: bool = True,
+    capability: str | None = None,
+    side_effect: bool = False,
+) -> dict[str, Any]:
+    return {
+        "kind": kind,
+        "key": key,
+        "description": description,
+        "autonomous": autonomous,
+        "capability": capability,
+        "side_effect": side_effect,
+    }
 
 
 def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
-    """Translate current stage/gate gaps into executable host work items."""
+    """Translate current stage/gate gaps into host-neutral work items."""
     stage = state.get("stage", "intake")
     gate = evaluate_stage(state, stage)
     q: list[dict[str, Any]] = []
@@ -27,20 +52,20 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         if not gate.passed:
             q.append(_item("user_input", "personal_concept", gate.next_action or "Capture personal constraints.", autonomous=False))
         else:
-            q.append(_item("research", "candidate_markets", "Find candidate markets consistent with project constraints.", provider_hint="web"))
+            q.append(_item("research", "candidate_markets", "Find candidate markets consistent with project constraints.", capability=WEB_SEARCH))
         return q
 
     if stage == "market_discovery":
         q.extend([
-            _item("research", "market_players", "Find multiple current players and close reference products.", provider_hint="web"),
-            _item("research", "market_demand", "Find transaction/demand traces; separate search demand from willingness to pay.", provider_hint="web/seo"),
-            _item("research", "market_structure", "Check switching cost, concentration, traffic dominance and geo relevance.", provider_hint="web/seo"),
+            _item("research", "market_players", "Find multiple current players and close reference products.", capability=WEB_SEARCH),
+            _item("research", "market_demand", "Measure search demand where possible; do not equate search volume with willingness to pay.", capability=SEO_KEYWORD_METRICS),
+            _item("research", "market_structure", "Check competitor traffic/concentration and geo relevance.", capability=SEO_DOMAIN_METRICS),
         ])
         return q
 
     if stage == "idea_generation":
         q.extend([
-            _item("research", "reference_products", "Find real reference products before treating generated ideas as viable.", provider_hint="web"),
+            _item("research", "reference_products", "Find real reference products before treating generated ideas as viable.", capability=WEB_SEARCH),
             _item("artifact", "idea_shortlist", "Generate ideas inside evidenced markets and store them as idea cards."),
         ])
         return q
@@ -48,20 +73,20 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
     if stage == "idea_selection":
         idea = next((i for i in state.get("ideas", []) if i.get("id") == state.get("selected_idea_id") or i.get("decision") == "selected"), {})
         if len(idea.get("references") or []) < 3:
-            q.append(_item("research", "close_references", "Find 3–5 close references, preferably same geo/avatar/pain/solution.", provider_hint="web"))
+            q.append(_item("research", "close_references", "Find 3–5 close references, preferably same geo/avatar/pain/solution.", capability=WEB_SEARCH))
         if idea.get("avg_competitor_check") is None:
-            q.append(_item("research", "competitor_pricing", "Collect current competitor pricing.", provider_hint="web"))
+            q.append(_item("research", "competitor_pricing", "Collect current competitor pricing.", capability=WEB_FETCH))
         if not idea.get("usage_frequency"):
-            q.append(_item("research", "usage_frequency", "Estimate usage frequency from product/review evidence.", provider_hint="web"))
+            q.append(_item("research", "usage_frequency", "Estimate usage frequency from product/review evidence.", capability=WEB_SEARCH))
         if idea.get("feasible_as_pet_project") is None or idea.get("personal_fit") is None:
             q.append(_item("user_input", "feasibility_fit", "Resolve only feasibility/personal-fit facts that cannot be researched.", autonomous=False))
         return q
 
     if stage == "research_marketing":
         q.extend([
-            _item("research", "competitor_products", "Use/review direct competitors and capture mechanism, price and market norms.", provider_hint="web"),
-            _item("research", "reviews_users", "Analyze reviews, demos/videos and paying-user context.", provider_hint="web"),
-            _item("research", "traffic_channels", "Inspect competitor acquisition channels and current ads where possible.", provider_hint="seo/ads"),
+            _item("research", "competitor_products", "Use/review direct competitors and capture mechanism, price and market norms.", capability=WEB_SEARCH),
+            _item("research", "reviews_users", "Analyze reviews, demos/videos and paying-user context.", capability=WEB_SEARCH),
+            _item("research", "traffic_channels", "Inspect competitor traffic/acquisition channels with SEO evidence where available.", capability=SEO_COMPETITOR_TRAFFIC),
             _item("artifact", "marketing_contract", "Build one coherent avatar → situation → pain → solution → primary benefit contract."),
         ])
         return q
@@ -75,16 +100,16 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
 
     if stage == "gtm_planning":
         channel = (state.get("channel_plan") or {}).get("channel")
-        q.append(_item("research", "platform_current_check", f"Verify current rules/UI for {channel or 'candidate channel'} before execution.", provider_hint="web"))
+        q.append(_item("research", "platform_current_check", f"Verify current rules/UI for {channel or 'candidate channel'} before execution.", capability=WEB_SEARCH))
         q.append(_item("calculation", "experiment_economics", "Calculate budget cap, expected funnel, CAC/LTV assumptions and stopping conditions."))
         if channel == "search":
-            q.append(_item("research", "search_keywords", "Collect hot transactional keywords, volume, CPC/competition and competitor ads.", provider_hint="seo/ads"))
+            q.append(_item("research", "search_keywords", "Collect hot transactional keywords, volume and competitive metrics.", capability=SEO_KEYWORD_METRICS))
         elif channel == "meta":
-            q.append(_item("research", "meta_creatives", "Research competitor creatives and prepare 1–2 tightly matched hypotheses.", provider_hint="ads"))
+            q.append(_item("research", "meta_creatives", "Research competitor creatives and prepare 1–2 tightly matched hypotheses.", capability=WEB_SEARCH))
         elif channel == "telegram":
-            q.append(_item("research", "telegram_channels", "Find/filter author-led channels by reach, ad return proxies, audience source and price.", provider_hint="web"))
+            q.append(_item("research", "telegram_channels", "Find/filter author-led channels by reach, audience source and price.", capability=WEB_SEARCH))
         elif channel == "outreach":
-            q.append(_item("research", "prospect_base", "Build a qualified prospect base and source provenance.", provider_hint="prospecting"))
+            q.append(_item("research", "prospect_base", "Build a qualified prospect base and source provenance.", capability=WEB_SEARCH))
         return q
 
     if stage == "launch":
@@ -92,19 +117,19 @@ def build_work_queue(state: dict[str, Any]) -> list[dict[str, Any]]:
         if not approved:
             q.append(_item("approval", "launch_approval", "Request approval with exact target, max spend, duration, assets and pause condition.", autonomous=False))
         else:
-            q.append(_item("action", "execute_launch", "Execute only the approved external action and read back the result.", provider_hint="ads/action"))
+            q.append(_item("action", "execute_launch", "Execute only the approved advertising action and read back the result.", capability=ADS_CAMPAIGNS_WRITE, side_effect=True))
         return q
 
     if stage == "lead_onboarding":
         q.extend([
-            _item("metrics", "lead_intake", "Read incoming leads and qualification outcomes.", provider_hint="crm/analytics"),
+            _item("metrics", "lead_intake", "Read incoming leads and qualification outcomes.", capability=CRM_LEADS_READ),
             _item("operation", "manual_onboarding", "Prioritize qualified leads and capture objections, activation and payment asks."),
         ])
         return q
 
     if stage == "iteration_tracking":
         q.extend([
-            _item("metrics", "funnel_snapshot", "Read observed reach → clicks → leads → qualified leads → payments.", provider_hint="analytics/ads"),
+            _item("metrics", "funnel_snapshot", "Read observed reach → clicks → leads → qualified leads → payments.", capability=ANALYTICS_FUNNEL_READ),
             _item("analysis", "diagnose_earliest_break", "Diagnose the earliest meaningful funnel break and change the smallest useful variable set."),
         ])
         return q

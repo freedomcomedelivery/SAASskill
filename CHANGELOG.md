@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3
+- Host-neutral capability routing.
+- Semrush/Ahrefs priority + fallback model.
+- Ads read/write capability boundary.
+- Host executor with normalized tool request/result envelopes.
+- MCP server for Claude Code, Claude Platform, OpenAI and other MCP hosts.
+- Claude/agent bootstrap files and MCP setup docs.
+- Provider routing and protected state-patch tests.
+
+
 ## 1.2
 - Executable Python runtime and CLI.
 - Filesystem project-state store with atomic writes.

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "saasskill": {
+      "command": "python",
+      "args": [
+        "-m",
+        "saasskill.mcp_server"
+      ],
+      "env": {
+        "PYTHONPATH": "src",
+        "SAASSKILL_PROJECT_ROOT": ".saasskill/projects"
+      }
+    }
+  }
+}

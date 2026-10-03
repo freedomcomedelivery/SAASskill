@@ -1,13 +1,42 @@
 {
   "name": "pet-project-launch-operator",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "language": "ru",
   "entrypoint": "SKILL.md",
   "runtime": {
     "package": "saasskill",
     "python": ">=3.10",
     "cli": "saasskill",
+    "mcp_entrypoint": "saasskill-mcp",
     "state_store": ".saasskill/projects/<project_id>/state.json"
+  },
+  "hosts": {
+    "mcp": true,
+    "claude_code": {
+      "local_stdio": true,
+      "remote_http": true
+    },
+    "claude_platform": {
+      "remote_mcp": true
+    },
+    "openai": {
+      "remote_mcp": true
+    }
+  },
+  "providers": {
+    "research": [
+      "web",
+      "semrush",
+      "ahrefs"
+    ],
+    "actions": [
+      "ads"
+    ],
+    "metrics": [
+      "ads",
+      "analytics",
+      "crm"
+    ]
   },
   "source_methodology": "Практикум по пет-проектам, May 2026 materials supplied by user",
   "artifacts": [

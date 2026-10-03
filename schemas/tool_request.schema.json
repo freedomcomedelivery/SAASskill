@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ToolRequest",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string"
+    },
+    "work_key": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "requested_capability": {
+      "type": "string"
+    },
+    "effective_capability": {
+      "type": "string"
+    },
+    "provider": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "degraded": {
+      "type": "boolean"
+    },
+    "side_effect": {
+      "type": "boolean"
+    },
+    "approval_required": {
+      "type": "boolean"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "work_key",
+    "requested_capability",
+    "effective_capability",
+    "degraded",
+    "side_effect",
+    "approval_required",
+    "payload"
+  ],
+  "additionalProperties": true
+}

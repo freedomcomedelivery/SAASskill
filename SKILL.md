@@ -82,7 +82,7 @@ description: Операционный агент запуска пет-прое�
 - Evals: `evals/`
 
 
-## Executable runtime v1.2
+## Executable runtime v1.3
 Если среда поддерживает репозиторий как исполняемый пакет, используй
 `src/saasskill/` как детерминированный control plane:
 - `ProjectStore` хранит реальный project state;
@@ -93,3 +93,19 @@ description: Операционный агент запуска пет-прое�
 
 LLM не должна сама менять stage в обход runtime. Force override допустим только с
 зафиксированной причиной. См. `docs/runtime.md`.
+
+
+## Host-neutral execution
+Do not assume ChatGPT-specific tools. Request logical capabilities and let the host
+route them:
+- public/current research → `web.*`;
+- keyword/domain/competitor metrics → `seo.*` via Semrush or Ahrefs;
+- actual ad account/campaign/performance → `ads.*`;
+- observed funnel/leads → analytics/CRM.
+
+Use `project_plan` when SAASskill MCP is connected. Execute the returned request with
+the provider named by the router, then normalize the result through
+`project_apply_result`. If an SEO capability falls back to web, keep
+`degraded=true` and never present it as provider-grade metrics.
+
+Claude and OpenAI hosts must follow the same gates and approvals.

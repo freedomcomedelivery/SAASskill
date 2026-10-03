@@ -1,0 +1,36 @@
+{
+  "available_providers": [
+    "web",
+    "semrush",
+    "ahrefs",
+    "ads",
+    "analytics",
+    "crm"
+  ],
+  "preferences": {
+    "seo.keyword_metrics": [
+      "semrush",
+      "ahrefs"
+    ],
+    "seo.domain_metrics": [
+      "ahrefs",
+      "semrush"
+    ],
+    "seo.competitor_traffic": [
+      "semrush",
+      "ahrefs"
+    ],
+    "seo.backlinks": [
+      "ahrefs"
+    ],
+    "seo.competitor_ads": [
+      "semrush"
+    ],
+    "ads.performance.read": [
+      "ads"
+    ],
+    "ads.campaigns.write": [
+      "ads"
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ToolResult",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string"
+    },
+    "provider": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "capability": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "degraded": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "error",
+        "skipped"
+      ]
+    },
+    "observed_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "data": {},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "state_patch": {
+      "type": "object"
+    },
+    "error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "request_id",
+    "status"
+  ],
+  "additionalProperties": true
+}

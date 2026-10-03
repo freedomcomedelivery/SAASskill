@@ -42,7 +42,11 @@ required = [
     'SKILL.md','README.md','skill-manifest.json','runtime/stage-machine.md',
     'evals/cases.jsonl','pyproject.toml','src/saasskill/state.py',
     'src/saasskill/gates.py','src/saasskill/orchestrator.py',
-    'src/saasskill/cli.py','tests/test_runtime.py',
+    'src/saasskill/cli.py','src/saasskill/capabilities.py',
+    'src/saasskill/providers.py','src/saasskill/host_executor.py',
+    'src/saasskill/mcp_server.py','tests/test_runtime.py',
+    'tests/test_provider_routing.py','docs/mcp.md','docs/provider-routing.md',
+    'CLAUDE.md','AGENTS.md','.mcp.json.example',
 ]
 for req in required:
     if not (ROOT/req).exists():
@@ -50,11 +54,13 @@ for req in required:
 
 try:
     manifest=json.loads((ROOT/'skill-manifest.json').read_text(encoding='utf-8'))
-    if manifest.get('version') != '1.2.0':
-        errors.append(f"skill-manifest version must be 1.2.0, got {manifest.get('version')!r}")
+    if manifest.get('version') != '1.3.0':
+        errors.append(f"skill-manifest version must be 1.3.0, got {manifest.get('version')!r}")
     runtime=manifest.get('runtime') or {}
     if runtime.get('package') != 'saasskill':
         errors.append('skill-manifest.runtime.package must be saasskill')
+    if not (manifest.get('hosts') or {}).get('mcp'):
+        errors.append('skill-manifest.hosts.mcp must be enabled')
 except Exception:
     pass
 

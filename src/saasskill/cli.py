@@ -36,6 +36,10 @@ def build_parser() -> argparse.ArgumentParser:
         s = sub.add_parser(name)
         s.add_argument("project_id")
 
+    s = sub.add_parser("route", help="Route the current work plan to available providers")
+    s.add_argument("project_id")
+    s.add_argument("--provider", action="append", default=[], help="Available logical provider: web, semrush, ahrefs, ads, analytics, crm")
+
     s = sub.add_parser("advance")
     s.add_argument("project_id")
     s.add_argument("--force", action="store_true")
@@ -96,6 +100,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "plan":
         from .workplan import build_work_queue
         _dump(build_work_queue(store.load(args.project_id)))
+        return 0
+    if args.command == "route":
+        from .host_executor import HostExecutor
+        _dump(HostExecutor(store).plan(args.project_id, available_providers=args.provider))
         return 0
     if args.command == "advance":
         state, gate = orch.advance(args.project_id, force=args.force, reason=args.reason)

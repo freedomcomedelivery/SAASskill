@@ -1,8 +1,8 @@
-# Pet Project Launch Operator v1.2
+# Pet Project Launch Operator v1.3
 
 Это не конспект курса. Это repo-ready база для агента, который выполняет продуктовый запуск по методике «Практикума по пет-проектам».
 
-## Что входит в v1.2
+## Что входит в v1.3
 - полная карта всех блоков и уроков транскрипта;
 - state machine и orchestrator loop;
 - отдельные schemas для market/research/landing/economics/lead/approval;
@@ -38,7 +38,7 @@ Specific UI steps и platform rules быстро устаревают. Поэт�
 
 ## Executable runtime
 
-v1.2 добавляет детерминированный Python runtime: project state на диске, gate engine,
+v1.3 добавляет детерминированный Python runtime: project state на диске, gate engine,
 audit trail, explicit approvals, CLI и host work planner.
 
 ```bash
@@ -49,3 +49,19 @@ PYTHONPATH=src python -m saasskill advance my-project
 ```
 
 Подробности: [docs/runtime.md](docs/runtime.md).
+
+
+## Multi-host + providers
+
+v1.3 separates **host** from **data/action provider**. Claude, ChatGPT/OpenAI API or
+another MCP client can drive the same project state.
+
+Research routing:
+`web → public/current facts`,
+`Semrush/Ahrefs → SEO/keyword/domain/competitor metrics`,
+`Ads → real account/campaign/performance data and approved writes`.
+
+Semrush and Ahrefs are optional and complementary. See
+[provider routing](docs/provider-routing.md) and [MCP setup](docs/mcp.md).
+
+Claude Code can use the project-local [`.mcp.json.example`](.mcp.json.example).
