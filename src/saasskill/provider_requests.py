@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 
@@ -26,16 +27,45 @@ def build_direct_read_spec(
                 raise ValueError("Ahrefs keyword metrics require context.query/keyword")
             return {
                 "endpoint": "keywords-explorer/matching-terms",
-                "params": {"keywords": query, "country": country, "limit": limit},
+                "params": {"keywords": query, "country": country, "limit": limit, "select": "keyword,volume,cpc,difficulty,intents,traffic_potential"},
                 "context": ctx,
             }
         if not target:
             raise ValueError(f"Ahrefs {capability} requires context.target/domain")
+        report_date = ctx.get("date") or date.today().isoformat()
         mapping = {
-            "seo.domain_metrics": ("site-explorer/domain-rating", {"target": target, "date": ctx.get("date")}),
-            "seo.competitor_traffic": ("site-explorer/organic-competitors", {"target": target, "country": country, "limit": limit}),
-            "seo.backlinks": ("site-explorer/refdomains", {"target": target, "limit": limit}),
-            "seo.competitor_ads": ("site-explorer/paid-pages", {"target": target, "country": country, "limit": limit}),
+            "seo.domain_metrics": (
+                "site-explorer/domain-rating",
+                {"target": target, "date": report_date},
+            ),
+            "seo.competitor_traffic": (
+                "site-explorer/organic-competitors",
+                {
+                    "target": target,
+                    "country": country,
+                    "date": report_date,
+                    "limit": limit,
+                    "select": "competitor_domain,competitor_url,domain_rating,keywords_common,keywords_competitor,keywords_target,share,traffic,value",
+                },
+            ),
+            "seo.backlinks": (
+                "site-explorer/refdomains",
+                {
+                    "target": target,
+                    "limit": limit,
+                    "select": "domain,domain_rating,links_to_target,traffic_domain,is_spam,first_seen,last_seen",
+                },
+            ),
+            "seo.competitor_ads": (
+                "site-explorer/paid-pages",
+                {
+                    "target": target,
+                    "country": country,
+                    "date": report_date,
+                    "limit": limit,
+                    "select": "url,ads_count,keywords,sum_traffic,value,top_keyword,top_keyword_volume",
+                },
+            ),
         }
         if capability not in mapping:
             raise ValueError(f"Unsupported Ahrefs capability: {capability}")
