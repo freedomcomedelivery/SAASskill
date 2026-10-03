@@ -441,6 +441,125 @@ def project_ingest_public_page(
 
 
 @mcp.tool()
+def project_execute_pending_direct(
+    project_id: str,
+    request_id: str,
+    spec: dict[str, Any],
+    dry_run: bool = True,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Execute + normalize + ingest a pending non-ads direct-provider request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    supported = {"ahrefs", "semrush", "posthog", "ga4", "yandex_metrica", "hubspot", "stripe"}
+    if provider not in supported:
+        raise ValueError(f"Direct pending execution is not available for provider {provider}")
+    executed = execute_direct_read(provider, spec, dry_run=dry_run, timeout=timeout)
+    if dry_run:
+        return executed
+    payload = executed["payload"]
+    context = _ingest_context(state, pending, spec.get("context"))
+
+    if provider == "ahrefs":
+        result = normalize_ahrefs_result(
+            request_id=request_id,
+            endpoint=spec["endpoint"],
+            payload=payload,
+            context=context,
+        )
+    elif provider == "semrush":
+        report_type = spec.get("report_type") or (spec.get("params") or {}).get("type")
+        if not report_type:
+            raise ValueError("Semrush direct spec requires report_type or params.type")
+        result = normalize_semrush_result(
+            request_id=request_id,
+            report_type=report_type,
+            payload=payload,
+            context=context,
+        )
+    elif provider in {"posthog", "ga4", "yandex_metrica"}:
+        result = normalize_analytics_result(
+            provider=provider,
+            request_id=request_id,
+            payload=payload,
+            context=context,
+        )
+    elif provider == "hubspot":
+        result = normalize_crm_result(
+            provider=provider,
+            request_id=request_id,
+            payload=payload,
+            context=context,
+        )
+    else:
+        result = normalize_payments_result(
+            provider=provider,
+            request_id=request_id,
+            payload=payload,
+            context=context,
+        )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_execute_pending_ads_direct(
+    project_id: str,
+    request_id: str,
+    spec: dict[str, Any],
+    dry_run: bool = True,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Execute + normalize + ingest a pending advertising read request."""
+    store, state, pending = _pending_request(project_id, request_id)
+    provider = pending.get("provider")
+    if provider not in {"google_ads", "meta_ads", "yandex_direct", "apple_ads"}:
+        raise ValueError(f"Direct ads execution is not available for provider {provider}")
+    if spec.get("provider") != provider:
+        raise ValueError(f"Spec provider {spec.get('provider')} does not match pending provider {provider}")
+    executed = execute_ads_read_request(spec, dry_run=dry_run, timeout=timeout)
+    if dry_run:
+        return executed
+    result = normalize_ads_result(
+        provider=provider,
+        request_id=request_id,
+        payload=executed["payload"],
+        context=_ingest_context(state, pending),
+        capability=pending.get("effective_capability"),
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
+def project_execute_pending_public_rest(
+    project_id: str,
+    request_id: str,
+    url: str,
+    allowed_domains: list[str] | None = None,
+    timeout: float = 30.0,
+) -> dict[str, Any]:
+    """Fetch via camofox-browser REST, normalize the public commercial surface and ingest it."""
+    store, state, pending = _pending_request(project_id, request_id)
+    effective = pending.get("effective_capability")
+    if effective not in {"web.browser_parse", "web.fetch"}:
+        raise ValueError(f"Request {request_id} is not a browser/public-page request")
+    if pending.get("provider") not in {"camoufox", "web"}:
+        raise ValueError(f"Request {request_id} is routed to {pending.get('provider')}, not a browser provider")
+    surface = fetch_camofox_rest_surface(
+        url,
+        timeout=timeout,
+        allowed_domains=set(allowed_domains or []) or None,
+    )
+    result = normalize_public_page_result(
+        request_id=request_id,
+        snapshot=surface,
+        context=_ingest_context(state, pending),
+        provider=pending.get("provider") or "camoufox",
+        capability=effective,
+    )
+    return HostExecutor(store).apply_result(project_id, result)
+
+
+@mcp.tool()
 def project_apply_result(project_id: str, result: dict[str, Any]) -> dict[str, Any]:
     """Ingest one result for a previously planned provider request."""
     return HostExecutor(_store()).apply_result(project_id, result)
